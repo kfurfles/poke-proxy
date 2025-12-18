@@ -4,11 +4,13 @@ import { RequestContextModule } from './shared/context';
 import { LoggerModule } from './shared/logger';
 import { CustomThrottlerModule } from './shared/throttler';
 import { CorrelationIdMiddleware } from './shared/middleware';
+import { CacheModule } from './shared/cache';
 
 @Module({
   imports: [
     RequestContextModule,
     LoggerModule,
+    CacheModule,
     CustomThrottlerModule,
     PokemonModule,
   ],

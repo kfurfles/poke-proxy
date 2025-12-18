@@ -1,10 +1,10 @@
 import { CorrelationIdMiddleware } from './correlation-id.middleware';
 import { RequestContextService } from '../context';
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
-jest.mock('uuid', () => ({
-  v4: jest.fn(),
+jest.mock('node:crypto', () => ({
+  randomUUID: jest.fn(),
 }));
 
 describe('CorrelationIdMiddleware', () => {
@@ -15,6 +15,7 @@ describe('CorrelationIdMiddleware', () => {
   let mockNext: NextFunction;
 
   beforeEach(() => {
+    (randomUUID as unknown as jest.Mock).mockReturnValue('generated-uuid-456');
     requestContextService = new RequestContextService();
     middleware = new CorrelationIdMiddleware(requestContextService);
     mockRequest = {
@@ -74,7 +75,7 @@ describe('CorrelationIdMiddleware', () => {
 
   it('should generate new UUID when x-session-id header is not present', () => {
     const generatedUuid = 'generated-uuid-456';
-    (uuidv4 as jest.Mock).mockReturnValue(generatedUuid);
+    (randomUUID as unknown as jest.Mock).mockReturnValue(generatedUuid);
     const runSpy = jest
       .spyOn(requestContextService, 'run')
       .mockImplementation((context, callback) => {
@@ -105,12 +106,12 @@ describe('CorrelationIdMiddleware', () => {
       expect.any(Function),
     );
     expect(mockNext).toHaveBeenCalled();
-    expect(uuidv4).toHaveBeenCalled();
+    expect(randomUUID).toHaveBeenCalled();
   });
 
   it('should generate new UUID when x-session-id header is empty', () => {
     const generatedUuid = 'generated-uuid-789';
-    (uuidv4 as jest.Mock).mockReturnValue(generatedUuid);
+    (randomUUID as unknown as jest.Mock).mockReturnValue(generatedUuid);
     mockRequest.headers = { 'x-session-id': '' };
     jest
       .spyOn(requestContextService, 'run')
@@ -136,7 +137,7 @@ describe('CorrelationIdMiddleware', () => {
       },
     );
     expect(mockNext).toHaveBeenCalled();
-    expect(uuidv4).toHaveBeenCalled();
+    expect(randomUUID).toHaveBeenCalled();
   });
 
   it('should handle multiple header formats correctly', () => {

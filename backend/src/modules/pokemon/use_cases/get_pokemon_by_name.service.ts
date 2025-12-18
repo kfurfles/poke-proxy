@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PokemonApiService, PokemonDetail } from '../services/pokemon_api';
 import type { AppError } from '../../../shared/app_error';
 import { left, right, type Either } from '../../../shared/either';
 import { LogContext } from '@/shared/decorators';
 import { LoggerService } from '@/shared/logger';
+import { CACHE_PORT, type CachePort } from '@/shared/cache';
 
 // Input/Output Contracts
 export interface GetPokemonByNameUseCaseInput {
@@ -39,9 +40,12 @@ export type GetPokemonByNameUseCaseOutput = Either<AppError, PokemonOutput>;
 
 @Injectable()
 export class GetPokemonByNameUseCase {
+  private readonly CACHE_TTL_SECONDS = 60;
+
   constructor(
     private readonly pokemonApiService: PokemonApiService,
     private readonly logger: LoggerService,
+    @Inject(CACHE_PORT) private readonly cache: CachePort,
   ) {}
 
   @LogContext({
@@ -59,15 +63,35 @@ export class GetPokemonByNameUseCase {
     });
 
     try {
-      const pokemon = await this.pokemonApiService.getPokemonByName(input.name);
+      const normalizedName = input.name.toLowerCase().trim();
+      const cacheKey = `pokemon:byName:${normalizedName}`;
+
+      const fetchFn = async (): Promise<PokemonOutput> => {
+        const pokemon = await this.pokemonApiService.getPokemonByName(input.name);
+        return this.transformToOutput(pokemon);
+      };
+
+      let data: PokemonOutput;
+      try {
+        data = await this.cache.withCache(cacheKey, fetchFn, {
+          ttl: this.CACHE_TTL_SECONDS,
+        });
+      } catch (cacheError: unknown) {
+        this.logger.warn('[Cache] Bypassing cache due to error', {
+          cacheKey,
+          errorMessage:
+            cacheError instanceof Error ? cacheError.message : String(cacheError),
+        });
+        data = await fetchFn();
+      }
 
       this.logger.info('GetPokemonByName succeeded', {
         pokemonName: input.name,
-        pokemonId: pokemon.id,
+        pokemonId: data.id,
         durationMs: Date.now() - startedAt,
       });
 
-      return right(this.transformToOutput(pokemon));
+      return right(data);
     } catch (error: unknown) {
       const mappedError = this.mapError(error);
 

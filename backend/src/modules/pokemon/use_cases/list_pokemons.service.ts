@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PokemonApiService, PokemonBasicInfo } from '../services/pokemon_api';
 import type { AppError } from '../../../shared/app_error';
 import { left, right, type Either } from '../../../shared/either';
 import { LogContext } from '@/shared/decorators';
 import { LoggerService } from '@/shared/logger';
+import { CACHE_PORT, type CachePort } from '@/shared/cache';
 
 // Input/Output Contracts
 export interface ListPokemonsUseCaseInput {
@@ -26,10 +27,12 @@ export class ListPokemonsUseCase {
   private readonly MAX_LIMIT = 20;
   private readonly DEFAULT_LIMIT = 20;
   private readonly DEFAULT_OFFSET = 0;
+  private readonly CACHE_TTL_SECONDS = 60;
 
   constructor(
     private readonly pokemonApiService: PokemonApiService,
     private readonly logger: LoggerService,
+    @Inject(CACHE_PORT) private readonly cache: CachePort,
   ) {}
 
   @LogContext({
@@ -46,20 +49,39 @@ export class ListPokemonsUseCase {
       offset: validatedInput.offset,
     });
 
-    try {
+    const cacheKey = `pokemon:list:limit:${validatedInput.limit}:offset:${validatedInput.offset}`;
+
+    const fetchFn = async (): Promise<ListPokemonsData> => {
       const response = await this.pokemonApiService.listPokemons(
         validatedInput.limit,
         validatedInput.offset,
       );
 
-      return right({
+      return {
         pokemons: response.results.map(
           (pokemon: PokemonBasicInfo) => pokemon.name,
         ),
         total: response.count,
         hasNext: response.next !== null,
         hasPrevious: response.previous !== null,
-      });
+      };
+    };
+
+    try {
+      try {
+        const data = await this.cache.withCache(cacheKey, fetchFn, {
+          ttl: this.CACHE_TTL_SECONDS,
+        });
+        return right(data);
+      } catch (cacheError: unknown) {
+        this.logger.warn('[Cache] Bypassing cache due to error', {
+          cacheKey,
+          errorMessage:
+            cacheError instanceof Error ? cacheError.message : String(cacheError),
+        });
+        const data = await fetchFn();
+        return right(data);
+      }
     } catch (error: unknown) {
       this.logger.error(
         'ListPokemons failed',

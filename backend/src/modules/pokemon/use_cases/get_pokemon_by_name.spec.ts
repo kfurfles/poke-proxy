@@ -6,11 +6,13 @@ import { PokemonApiService, type PokemonDetail } from '../services/pokemon_api';
 import { GetPokemonByNameUseCase } from './get_pokemon_by_name.service';
 import { isLeft, isRight } from '../../../shared/either';
 import { LoggerService } from '@/shared/logger';
+import { CACHE_PORT, type CachePort } from '@/shared/cache';
 
 describe('GetPokemonByNameUseCase', () => {
   let useCase: GetPokemonByNameUseCase;
   let pokemonApiService: jest.Mocked<PokemonApiService>;
   let loggerService: jest.Mocked<LoggerService>;
+  let cache: jest.Mocked<CachePort>;
 
   const mockPokemonDetail: PokemonDetail = {
     id: 25,
@@ -89,13 +91,19 @@ describe('GetPokemonByNameUseCase', () => {
     };
 
     const mockLoggerService = {
-      setContexto: jest.fn(),
+      setContext: jest.fn(),
       info: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
       debug: jest.fn(),
       verbose: jest.fn(),
       log: jest.fn(),
+    };
+
+    const mockCachePort = {
+      withCache: jest.fn(async (_key: string, fetchFn: () => Promise<any>) =>
+        fetchFn(),
+      ),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -109,12 +117,17 @@ describe('GetPokemonByNameUseCase', () => {
           provide: LoggerService,
           useValue: mockLoggerService,
         },
+        {
+          provide: CACHE_PORT,
+          useValue: mockCachePort,
+        },
       ],
     }).compile();
 
     useCase = module.get<GetPokemonByNameUseCase>(GetPokemonByNameUseCase);
     pokemonApiService = module.get(PokemonApiService);
     loggerService = module.get(LoggerService);
+    cache = module.get(CACHE_PORT);
   });
 
   describe('execute', () => {

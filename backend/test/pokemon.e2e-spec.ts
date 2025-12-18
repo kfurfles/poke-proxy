@@ -1,22 +1,38 @@
 import type { INestApplication } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { PokemonModule } from '@/modules/pokemon/pokemon.module';
+import { AppModule } from '@/app.module';
+import type { StartedRedisContainer } from '@testcontainers/redis';
+import { startRedisE2E } from './utils/redis-testcontainer';
 
 describe('PokemonController (e2e)', () => {
   let app: INestApplication;
+  let redis: StartedRedisContainer;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
+    const started = await startRedisE2E();
+    redis = started.container;
+    process.env.REDIS_URL = started.redisUrl;
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [PokemonModule],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
   });
 
-  afterEach(async () => {
-    await app.close();
+  afterAll(async () => {
+    await app?.close();
+    await redis?.stop();
   });
 
   describe('/pokemon (GET)', () => {
@@ -60,7 +76,7 @@ describe('PokemonController (e2e)', () => {
         .get('/pokemon?limit=5')
         .expect(400)
         .expect((res) => {
-          expect(res.body.message).toContain('Limit must be between 10 and 20');
+          expect(res.body.message).toContain('Limit must be at least 10');
         });
     });
 
@@ -69,7 +85,7 @@ describe('PokemonController (e2e)', () => {
         .get('/pokemon?limit=25')
         .expect(400)
         .expect((res) => {
-          expect(res.body.message).toContain('Limit must be between 10 and 20');
+          expect(res.body.message).toContain('Limit must be at most 20');
         });
     });
 
@@ -83,15 +99,12 @@ describe('PokemonController (e2e)', () => {
     });
 
     it('should use default value for invalid limit parameter', () => {
-      // class-validator transforma valores inválidos em NaN,
-      // que depois se torna o valor padrão (20)
+      // Em produção usamos ValidationPipe (transform=true). Valor inválido falha no DTO.
       return request(app.getHttpServer())
         .get('/pokemon?limit=abc')
-        .expect(200)
+        .expect(400)
         .expect((res) => {
-          expect(res.body.pokemons).toBeDefined();
-          // Deve usar o valor padrão
-          expect(res.body.pokemons.length).toBeLessThanOrEqual(20);
+          expect(res.body.message).toContain('Limit must be an integer');
         });
     });
   });

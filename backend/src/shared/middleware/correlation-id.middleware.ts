@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import { RequestContextService } from '../context';
 import { ENV } from '@/config/env';
 
@@ -18,7 +18,7 @@ export class CorrelationIdMiddleware implements NestMiddleware {
       | string
       | undefined;
 
-    const correlationId = sessionId || cookieCorrelationId || uuidv4();
+    const correlationId = sessionId || cookieCorrelationId || randomUUID();
 
     (req as Request & { correlationId: string }).correlationId = correlationId;
 

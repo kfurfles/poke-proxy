@@ -1,17 +1,36 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import type { RedisClientType } from 'redis';
 import { LoggerService } from '@/shared/logger';
 import type { CachePort } from './cache.port';
 import { REDIS_CLIENT } from './cache.tokens';
 
 @Injectable()
-export class CacheService implements CachePort {
+export class CacheService implements CachePort, OnApplicationShutdown {
   private connectPromise: Promise<void> | null = null;
 
   constructor(
     @Inject(REDIS_CLIENT) private readonly client: RedisClientType,
     private readonly logger: LoggerService,
-  ) {}
+  ) {
+    // Avoid process-level unhandled errors (e.g. container stops during tests)
+    this.client.on('error', (error) => {
+      this.logger.warn('[Cache] Redis client error', {
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
+    });
+  }
+
+  async onApplicationShutdown(): Promise<void> {
+    try {
+      if (this.client.isOpen) {
+        await this.client.quit();
+      }
+    } catch (error: unknown) {
+      this.logger.warn('[Cache] Failed to close Redis client', {
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 
   async get(key: string): Promise<string | null> {
     await this.ensureConnected();
