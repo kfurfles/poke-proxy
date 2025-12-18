@@ -10,6 +10,7 @@ describe('CacheService', () => {
       get: jest.fn<Promise<string | null>, [string]>(),
       set: jest.fn<Promise<'OK'>, any[]>(),
       del: jest.fn<Promise<number>, [string]>(),
+      on: jest.fn(),
     };
 
     const logger = {
