@@ -28,6 +28,10 @@ export default defineConfig({
           path: './src/shared/api/axios.ts',
           name: 'apiClient',
         },
+        query: {
+          useQuery: true,
+          useInfinite: true,
+        },
       },
     },
   },

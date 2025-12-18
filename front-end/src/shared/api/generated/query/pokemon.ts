@@ -5,10 +5,19 @@
  * Proxy API for PokeAPI - listing and searching Pokémon
  * OpenAPI spec version: 1.0
  */
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseInfiniteQueryResult,
+  DefinedUseQueryResult,
+  InfiniteData,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
+  UseInfiniteQueryOptions,
+  UseInfiniteQueryResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -38,10 +47,153 @@ export const pokemonControllerListPokemons = (
   )
 }
 
+export const getPokemonControllerListPokemonsInfiniteQueryKey = (
+  params?: PokemonControllerListPokemonsParams
+) => {
+  return ['infinate', `/pokemon`, ...(params ? [params] : [])] as const
+}
+
 export const getPokemonControllerListPokemonsQueryKey = (
   params?: PokemonControllerListPokemonsParams
 ) => {
   return [`/pokemon`, ...(params ? [params] : [])] as const
+}
+
+export const getPokemonControllerListPokemonsInfiniteQueryOptions = <
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerListPokemons>>>,
+  TError = void,
+>(
+  params?: PokemonControllerListPokemonsParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof apiClient>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getPokemonControllerListPokemonsInfiniteQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof pokemonControllerListPokemons>>> = ({
+    signal,
+  }) => pokemonControllerListPokemons(params, requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PokemonControllerListPokemonsInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof pokemonControllerListPokemons>>
+>
+export type PokemonControllerListPokemonsInfiniteQueryError = void
+
+export function usePokemonControllerListPokemonsInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerListPokemons>>>,
+  TError = void,
+>(
+  params: undefined | PokemonControllerListPokemonsParams,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+          TError,
+          Awaited<ReturnType<typeof pokemonControllerListPokemons>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePokemonControllerListPokemonsInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerListPokemons>>>,
+  TError = void,
+>(
+  params?: PokemonControllerListPokemonsParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+          TError,
+          Awaited<ReturnType<typeof pokemonControllerListPokemons>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePokemonControllerListPokemonsInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerListPokemons>>>,
+  TError = void,
+>(
+  params?: PokemonControllerListPokemonsParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List Pokémon
+ */
+
+export function usePokemonControllerListPokemonsInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerListPokemons>>>,
+  TError = void,
+>(
+  params?: PokemonControllerListPokemonsParams,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getPokemonControllerListPokemonsInfiniteQueryOptions(params, options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as UseInfiniteQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
 }
 
 export const getPokemonControllerListPokemonsQueryOptions = <
@@ -50,10 +202,8 @@ export const getPokemonControllerListPokemonsQueryOptions = <
 >(
   params?: PokemonControllerListPokemonsParams,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerListPokemons>>, TError, TData>
     >
     request?: SecondParameter<typeof apiClient>
   }
@@ -70,7 +220,7 @@ export const getPokemonControllerListPokemonsQueryOptions = <
     Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
     TError,
     TData
-  > & { queryKey: QueryKey }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type PokemonControllerListPokemonsQueryResult = NonNullable<
@@ -78,6 +228,61 @@ export type PokemonControllerListPokemonsQueryResult = NonNullable<
 >
 export type PokemonControllerListPokemonsQueryError = void
 
+export function usePokemonControllerListPokemons<
+  TData = Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+  TError = void,
+>(
+  params: undefined | PokemonControllerListPokemonsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerListPokemons>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+          TError,
+          Awaited<ReturnType<typeof pokemonControllerListPokemons>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePokemonControllerListPokemons<
+  TData = Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+  TError = void,
+>(
+  params?: PokemonControllerListPokemonsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerListPokemons>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+          TError,
+          Awaited<ReturnType<typeof pokemonControllerListPokemons>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePokemonControllerListPokemons<
+  TData = Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
+  TError = void,
+>(
+  params?: PokemonControllerListPokemonsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerListPokemons>>, TError, TData>
+    >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List Pokémon
  */
@@ -88,17 +293,18 @@ export function usePokemonControllerListPokemons<
 >(
   params?: PokemonControllerListPokemonsParams,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof pokemonControllerListPokemons>>,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerListPokemons>>, TError, TData>
     >
     request?: SecondParameter<typeof apiClient>
-  }
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getPokemonControllerListPokemonsQueryOptions(params, options)
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 
   query.queryKey = queryOptions.queryKey
 
@@ -117,8 +323,149 @@ export const pokemonControllerGetPokemonByName = (
   return apiClient<PokemonResponseDto>({ url: `/pokemon/${name}`, method: 'GET', signal }, options)
 }
 
+export const getPokemonControllerGetPokemonByNameInfiniteQueryKey = (name?: string) => {
+  return ['infinate', `/pokemon/${name}`] as const
+}
+
 export const getPokemonControllerGetPokemonByNameQueryKey = (name?: string) => {
   return [`/pokemon/${name}`] as const
+}
+
+export const getPokemonControllerGetPokemonByNameInfiniteQueryOptions = <
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>>,
+  TError = void,
+>(
+  name: string,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof apiClient>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getPokemonControllerGetPokemonByNameInfiniteQueryKey(name)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>> = ({
+    signal,
+  }) => pokemonControllerGetPokemonByName(name, requestOptions, signal)
+
+  return { queryKey, queryFn, enabled: !!name, ...queryOptions } as UseInfiniteQueryOptions<
+    Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PokemonControllerGetPokemonByNameInfiniteQueryResult = NonNullable<
+  Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>
+>
+export type PokemonControllerGetPokemonByNameInfiniteQueryError = void
+
+export function usePokemonControllerGetPokemonByNameInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>>,
+  TError = void,
+>(
+  name: string,
+  options: {
+    query: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+          TError,
+          Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePokemonControllerGetPokemonByNameInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>>,
+  TError = void,
+>(
+  name: string,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+          TError,
+          Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePokemonControllerGetPokemonByNameInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>>,
+  TError = void,
+>(
+  name: string,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get Pokémon by name
+ */
+
+export function usePokemonControllerGetPokemonByNameInfinite<
+  TData = InfiniteData<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>>,
+  TError = void,
+>(
+  name: string,
+  options?: {
+    query?: Partial<
+      UseInfiniteQueryOptions<
+        Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getPokemonControllerGetPokemonByNameInfiniteQueryOptions(name, options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as UseInfiniteQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
 }
 
 export const getPokemonControllerGetPokemonByNameQueryOptions = <
@@ -127,10 +474,8 @@ export const getPokemonControllerGetPokemonByNameQueryOptions = <
 >(
   name: string,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>, TError, TData>
     >
     request?: SecondParameter<typeof apiClient>
   }
@@ -147,7 +492,7 @@ export const getPokemonControllerGetPokemonByNameQueryOptions = <
     Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
     TError,
     TData
-  > & { queryKey: QueryKey }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type PokemonControllerGetPokemonByNameQueryResult = NonNullable<
@@ -155,6 +500,61 @@ export type PokemonControllerGetPokemonByNameQueryResult = NonNullable<
 >
 export type PokemonControllerGetPokemonByNameQueryError = void
 
+export function usePokemonControllerGetPokemonByName<
+  TData = Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+  TError = void,
+>(
+  name: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+          TError,
+          Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePokemonControllerGetPokemonByName<
+  TData = Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+  TError = void,
+>(
+  name: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+          TError,
+          Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePokemonControllerGetPokemonByName<
+  TData = Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
+  TError = void,
+>(
+  name: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>, TError, TData>
+    >
+    request?: SecondParameter<typeof apiClient>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get Pokémon by name
  */
@@ -165,17 +565,18 @@ export function usePokemonControllerGetPokemonByName<
 >(
   name: string,
   options?: {
-    query?: UseQueryOptions<
-      Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>,
-      TError,
-      TData
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof pokemonControllerGetPokemonByName>>, TError, TData>
     >
     request?: SecondParameter<typeof apiClient>
-  }
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getPokemonControllerGetPokemonByNameQueryOptions(name, options)
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 
   query.queryKey = queryOptions.queryKey
 
