@@ -10,6 +10,19 @@ import { ENV } from './config/env';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableShutdownHooks();
+  
+  // Enable CORS for frontend development (allow any localhost)
+  app.enableCors({
+    origin: (origin, callback) => {
+      if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  });
+  
   app.use(helmet());
 
   app.useGlobalPipes(
