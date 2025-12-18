@@ -20,6 +20,15 @@ export const envSchema = z.object({
     .string()
     .url()
     .default('http://localhost:4318/v1/traces'),
+
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  GEMINI_BASE_URL: z.string().url().default('https://generativelanguage.googleapis.com/v1beta'),
+
+  WARMUP_FAMOUS_POKEMON_CACHE: z
+    .string()
+    .default('false')
+    .transform((v) => v === 'true'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

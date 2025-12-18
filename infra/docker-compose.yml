@@ -9,6 +9,9 @@ services:
       - OTEL_SERVICE_NAME=api-proxy
       - OTEL_TRACES_SAMPLER=always_on
       - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://tempo:4318/v1/traces
+      - WARMUP_FAMOUS_POKEMON_CACHE=true
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
     volumes:
       - ../backend/logs:/app/logs
     ports:
