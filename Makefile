@@ -68,6 +68,10 @@ backend-install:
 backend-test:
 	npm --prefix $(BACKEND_DIR) test
 
+.PHONY: backend-test-ci
+backend-test-ci:
+	npm --prefix $(BACKEND_DIR) run test:ci
+
 .PHONY: backend-test-e2e
 backend-test-e2e:
 	npm --prefix $(BACKEND_DIR) run test:e2e

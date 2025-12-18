@@ -5,6 +5,11 @@ on:
     branches: ["**"]
   pull_request:
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
 jobs:
   backend-unit:
     name: Backend - Unit tests
@@ -25,7 +30,15 @@ jobs:
         run: make backend-install
 
       - name: Test
-        run: make backend-test
+        run: make backend-test-ci
+
+      - name: Publish unit test report
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Backend - Unit tests
+          path: backend/test-results/junit.xml
+          reporter: jest-junit
 
   # backend-e2e:
   #   name: Backend - E2E tests (testcontainers)
