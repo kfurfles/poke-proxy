@@ -14,8 +14,6 @@ if (!rootEl) {
 
 createRoot(rootEl).render(
   <StrictMode>
-    <AppProviders>
-      {/* RouterProvider renders the app routes; keep AppProviders as the shell */}
-    </AppProviders>
+    <AppProviders />
   </StrictMode>
 )
