@@ -66,7 +66,17 @@ jobs:
         run: docker pull redis:7-alpine
 
       - name: Test (E2E)
-        run: make backend-test-e2e
+        env:
+          JEST_JUNIT_OUTPUT_NAME: junit-e2e.xml
+        run: npm --prefix backend run test:e2e -- --reporters=default --reporters=jest-junit
+
+      - name: Publish e2e test report
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Backend - E2E tests
+          path: backend/test-results/junit-e2e.xml
+          reporter: jest-junit
 
   frontend-build:
     name: Frontend - Build
