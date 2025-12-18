@@ -1,0 +1,25 @@
+# =============================================================================
+# 🧭 Tempo Configuration - Poke Proxy
+# =============================================================================
+
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo
+
+compactor:
+  compaction:
+    block_retention: 24h
+
+

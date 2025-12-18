@@ -1,0 +1,53 @@
+# =============================================================================
+# 🚚 Promtail Configuration - Poke Proxy
+# =============================================================================
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: app-files
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: app-files
+          __path__: /var/log/app/*.log
+
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            message: message
+            timestamp: timestamp
+            service: service
+            correlationId: correlationId
+            operation: operation
+            method: method
+            url: url
+            traceId: traceId
+            spanId: spanId
+
+      - timestamp:
+          source: timestamp
+          format: "2006-01-02 15:04:05"
+
+      - labels:
+          level:
+          service:
+          operation:
+          method:
+          correlationId:
+          traceId:
+
+      - output:
+          source: message
+
+
