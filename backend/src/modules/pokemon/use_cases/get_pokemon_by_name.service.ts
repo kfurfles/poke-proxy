@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PokemonApiService, PokemonDetail } from '../services/pokemon_api';
 import type { AppError } from '../../../shared/app_error';
 import { left, right, type Either } from '../../../shared/either';
+import { LogContext } from '@/shared/decorators';
+import { LoggerService } from '@/shared/logger';
 
 // Input/Output Contracts
 export interface GetPokemonByNameUseCaseInput {
@@ -37,19 +39,58 @@ export type GetPokemonByNameUseCaseOutput = Either<AppError, PokemonOutput>;
 
 @Injectable()
 export class GetPokemonByNameUseCase {
-  constructor(private readonly pokemonApiService: PokemonApiService) {}
+  constructor(
+    private readonly pokemonApiService: PokemonApiService,
+    private readonly logger: LoggerService,
+  ) {}
 
+  @LogContext({
+    operation: 'get_pokemon_by_name',
+  })
   async execute(
     input: GetPokemonByNameUseCaseInput,
   ): Promise<GetPokemonByNameUseCaseOutput> {
     const validationError = this.validateInput(input);
     if (validationError) return left(validationError);
 
+    const startedAt = Date.now();
+    this.logger.debug('GetPokemonByName started', {
+      pokemonName: input.name,
+    });
+
     try {
       const pokemon = await this.pokemonApiService.getPokemonByName(input.name);
+
+      this.logger.info('GetPokemonByName succeeded', {
+        pokemonName: input.name,
+        pokemonId: pokemon.id,
+        durationMs: Date.now() - startedAt,
+      });
+
       return right(this.transformToOutput(pokemon));
     } catch (error: unknown) {
-      return left(this.mapError(error));
+      const mappedError = this.mapError(error);
+
+      if (mappedError.type === 'not_found') {
+        this.logger.warn('GetPokemonByName not found', {
+          pokemonName: input.name,
+          message: mappedError.message,
+          durationMs: Date.now() - startedAt,
+        });
+      } else {
+        this.logger.error(
+          'GetPokemonByName failed',
+          error instanceof Error ? error : undefined,
+          {
+            pokemonName: input.name,
+            mappedError,
+            durationMs: Date.now() - startedAt,
+            rawError: error instanceof Error ? undefined : error,
+          },
+        );
+      }
+
+      return left(mappedError);
     }
   }
 
@@ -105,11 +146,14 @@ export class GetPokemonByNameUseCase {
         effort: stat.effort,
       })),
       types: pokemon.types.map((type) => type.type.name),
-      abilities: pokemon.abilities.map((ability) => ({
-        name: ability.ability.name,
-        isHidden: ability.is_hidden,
-        slot: ability.slot,
-      })),
+      abilities: pokemon.abilities
+        .slice()
+        .sort((a, b) => a.ability.name.localeCompare(b.ability.name))
+        .map((ability) => ({
+          name: ability.ability.name,
+          isHidden: ability.is_hidden,
+          slot: ability.slot,
+        })),
     };
   }
 }

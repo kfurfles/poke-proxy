@@ -5,10 +5,12 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { PokemonApiService, type PokemonDetail } from '../services/pokemon_api';
 import { GetPokemonByNameUseCase } from './get_pokemon_by_name.service';
 import { isLeft, isRight } from '../../../shared/either';
+import { LoggerService } from '@/shared/logger';
 
 describe('GetPokemonByNameUseCase', () => {
   let useCase: GetPokemonByNameUseCase;
   let pokemonApiService: jest.Mocked<PokemonApiService>;
+  let loggerService: jest.Mocked<LoggerService>;
 
   const mockPokemonDetail: PokemonDetail = {
     id: 25,
@@ -86,6 +88,16 @@ describe('GetPokemonByNameUseCase', () => {
       getPokemonByName: jest.fn(),
     };
 
+    const mockLoggerService = {
+      setContexto: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+      log: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GetPokemonByNameUseCase,
@@ -93,11 +105,16 @@ describe('GetPokemonByNameUseCase', () => {
           provide: PokemonApiService,
           useValue: mockPokemonApiService,
         },
+        {
+          provide: LoggerService,
+          useValue: mockLoggerService,
+        },
       ],
     }).compile();
 
     useCase = module.get<GetPokemonByNameUseCase>(GetPokemonByNameUseCase);
     pokemonApiService = module.get(PokemonApiService);
+    loggerService = module.get(LoggerService);
   });
 
   describe('execute', () => {
@@ -116,6 +133,20 @@ describe('GetPokemonByNameUseCase', () => {
       }
       expect(pokemonApiService.getPokemonByName).toHaveBeenCalledWith(
         'pikachu',
+      );
+
+      expect(loggerService.setContext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operation: 'get_pokemon_by_name',
+        }),
+      );
+      expect(loggerService.info).toHaveBeenCalledWith(
+        'GetPokemonByName succeeded',
+        expect.objectContaining({
+          pokemonName: 'pikachu',
+          pokemonId: 25,
+          durationMs: expect.any(Number),
+        }),
       );
     });
 
@@ -167,8 +198,44 @@ describe('GetPokemonByNameUseCase', () => {
       expect(isRight(result)).toBe(true);
       if (isRight(result)) {
         expect(result.right.abilities).toEqual([
-          { name: 'static', isHidden: false, slot: 1 },
           { name: 'lightning-rod', isHidden: true, slot: 3 },
+          { name: 'static', isHidden: false, slot: 1 },
+        ]);
+      }
+    });
+
+    it('should sort abilities alphabetically by name', async () => {
+      const mockUnsortedAbilities: PokemonDetail = {
+        ...mockPokemonDetail,
+        abilities: [
+          {
+            ability: {
+              name: 'z-ability',
+              url: 'https://pokeapi.co/api/v2/ability/999/',
+            },
+            is_hidden: false,
+            slot: 2,
+          },
+          {
+            ability: {
+              name: 'a-ability',
+              url: 'https://pokeapi.co/api/v2/ability/1/',
+            },
+            is_hidden: true,
+            slot: 1,
+          },
+        ],
+      };
+
+      pokemonApiService.getPokemonByName.mockResolvedValue(mockUnsortedAbilities);
+
+      const result = await useCase.execute({ name: 'pikachu' });
+
+      expect(isRight(result)).toBe(true);
+      if (isRight(result)) {
+        expect(result.right.abilities.map((a) => a.name)).toEqual([
+          'a-ability',
+          'z-ability',
         ]);
       }
     });
@@ -237,6 +304,14 @@ describe('GetPokemonByNameUseCase', () => {
         expect(result.left.type).toBe('not_found');
         expect(result.left.message).toContain('Pokemon not found');
       }
+
+      expect(loggerService.warn).toHaveBeenCalledWith(
+        'GetPokemonByName not found',
+        expect.objectContaining({
+          pokemonName: 'fakemon',
+          durationMs: expect.any(Number),
+        }),
+      );
     });
 
     it('should handle API errors gracefully', async () => {
@@ -251,6 +326,15 @@ describe('GetPokemonByNameUseCase', () => {
         expect(result.left.type).toBe('unexpected');
         expect(result.left.message).toBe('Network error');
       }
+
+      expect(loggerService.error).toHaveBeenCalledWith(
+        'GetPokemonByName failed',
+        expect.any(Error),
+        expect.objectContaining({
+          pokemonName: 'pikachu',
+          durationMs: expect.any(Number),
+        }),
+      );
     });
   });
 });

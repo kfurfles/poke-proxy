@@ -2,14 +2,26 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { PokemonApiService } from '../services/pokemon_api';
 import { ListPokemonsUseCase } from './list_pokemons.service';
 import { isLeft, isRight } from '../../../shared/either';
+import { LoggerService } from '@/shared/logger';
 
 describe('ListPokemonsUseCase', () => {
   let useCase: ListPokemonsUseCase;
   let pokemonApiService: jest.Mocked<PokemonApiService>;
+  let loggerService: jest.Mocked<LoggerService>;
 
   beforeEach(async () => {
     const mockPokemonApiService = {
       listPokemons: jest.fn(),
+    };
+
+    const mockLoggerService = {
+      setContexto: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+      log: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -19,11 +31,16 @@ describe('ListPokemonsUseCase', () => {
           provide: PokemonApiService,
           useValue: mockPokemonApiService,
         },
+        {
+          provide: LoggerService,
+          useValue: mockLoggerService,
+        },
       ],
     }).compile();
 
     useCase = module.get<ListPokemonsUseCase>(ListPokemonsUseCase);
     pokemonApiService = module.get(PokemonApiService);
+    loggerService = module.get(LoggerService);
   });
 
   describe('execute', () => {
@@ -126,6 +143,15 @@ describe('ListPokemonsUseCase', () => {
         expect(result.left.type).toBe('unexpected');
         expect(result.left.message).toBe('Network error');
       }
+
+      expect(loggerService.error).toHaveBeenCalledWith(
+        'ListPokemons failed',
+        expect.any(Error),
+        expect.objectContaining({
+          limit: 20,
+          offset: 0,
+        }),
+      );
     });
 
     it('should accept limit at minimum boundary (10)', async () => {

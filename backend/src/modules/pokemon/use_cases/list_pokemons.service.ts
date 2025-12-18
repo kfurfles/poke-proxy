@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PokemonApiService, PokemonBasicInfo } from '../services/pokemon_api';
 import type { AppError } from '../../../shared/app_error';
 import { left, right, type Either } from '../../../shared/either';
+import { LogContext } from '@/shared/decorators';
+import { LoggerService } from '@/shared/logger';
 
 // Input/Output Contracts
 export interface ListPokemonsUseCaseInput {
@@ -25,13 +27,24 @@ export class ListPokemonsUseCase {
   private readonly DEFAULT_LIMIT = 20;
   private readonly DEFAULT_OFFSET = 0;
 
-  constructor(private readonly pokemonApiService: PokemonApiService) {}
+  constructor(
+    private readonly pokemonApiService: PokemonApiService,
+    private readonly logger: LoggerService,
+  ) {}
 
+  @LogContext({
+    operation: 'list_pokemons',
+  })
   async execute(
     input: ListPokemonsUseCaseInput,
   ): Promise<ListPokemonsUseCaseOutput> {
     const validatedInput = this.validateInput(input);
     if ('error' in validatedInput) return left(validatedInput.error);
+
+    this.logger.debug('ListPokemons started', {
+      limit: validatedInput.limit,
+      offset: validatedInput.offset,
+    });
 
     try {
       const response = await this.pokemonApiService.listPokemons(
@@ -48,6 +61,15 @@ export class ListPokemonsUseCase {
         hasPrevious: response.previous !== null,
       });
     } catch (error: unknown) {
+      this.logger.error(
+        'ListPokemons failed',
+        error instanceof Error ? error : undefined,
+        {
+          limit: validatedInput.limit,
+          offset: validatedInput.offset,
+          rawError: error instanceof Error ? undefined : error,
+        },
+      );
       return left(this.mapError(error));
     }
   }
