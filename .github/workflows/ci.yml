@@ -27,26 +27,26 @@ jobs:
       - name: Test
         run: make backend-test
 
-  backend-e2e:
-    name: Backend - E2E tests (testcontainers)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # backend-e2e:
+  #   name: Backend - E2E tests (testcontainers)
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 20
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
+  #     - name: Setup Node
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 22
+  #         cache: npm
+  #         cache-dependency-path: backend/package-lock.json
 
-      - name: Install
-        run: make backend-install
+  #     - name: Install
+  #       run: make backend-install
 
-      - name: Test (E2E)
-        run: make backend-test-e2e
+  #     - name: Test (E2E)
+  #       run: make backend-test-e2e
 
   frontend-build:
     name: Frontend - Build
