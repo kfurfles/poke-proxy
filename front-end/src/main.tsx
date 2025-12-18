@@ -2,9 +2,18 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { setApiBaseUrl } from './shared/api/axios'
+import { env } from './shared/env'
 
-createRoot(document.getElementById('root')!).render(
+setApiBaseUrl(env.VITE_API_BASE_URL)
+
+const rootEl = document.getElementById('root')
+if (!rootEl) {
+  throw new Error('Root element #root not found')
+}
+
+createRoot(rootEl).render(
   <StrictMode>
     <App />
-  </StrictMode>,
+  </StrictMode>
 )
