@@ -99,7 +99,6 @@ describe('PokemonController (e2e)', () => {
     });
 
     it('should use default value for invalid limit parameter', () => {
-      // Em produção usamos ValidationPipe (transform=true). Valor inválido falha no DTO.
       return request(app.getHttpServer())
         .get('/pokemon?limit=abc')
         .expect(400)

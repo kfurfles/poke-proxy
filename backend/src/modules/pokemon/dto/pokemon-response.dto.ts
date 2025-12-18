@@ -55,10 +55,10 @@ export class PokemonResponseDto {
   @ApiProperty({ example: 'bulbasaur' })
   name: string;
 
-  @ApiProperty({ example: 7, description: 'Altura em decímetros' })
+  @ApiProperty({ example: 7, description: 'Height in decimeters' })
   height: number;
 
-  @ApiProperty({ example: 69, description: 'Peso em hectogramas' })
+  @ApiProperty({ example: 69, description: 'Weight in hectograms' })
   weight: number;
 
   @ApiProperty({ example: 64 })

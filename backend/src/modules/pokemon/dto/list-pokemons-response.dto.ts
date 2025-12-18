@@ -2,26 +2,26 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ListPokemonsResponseDto {
   @ApiProperty({
-    description: 'Lista de nomes dos pokémons',
+    description: 'List of Pokémon names',
     example: ['bulbasaur', 'ivysaur', 'venusaur'],
     type: [String],
   })
   pokemons: string[];
 
   @ApiProperty({
-    description: 'Total de pokémons disponíveis',
+    description: 'Total number of available Pokémon',
     example: 1302,
   })
   total: number;
 
   @ApiProperty({
-    description: 'Indica se há próxima página',
+    description: 'Whether there is a next page',
     example: true,
   })
   hasNext: boolean;
 
   @ApiProperty({
-    description: 'Indica se há página anterior',
+    description: 'Whether there is a previous page',
     example: false,
   })
   hasPrevious: boolean;

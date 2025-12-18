@@ -1,3 +1,5 @@
+import './otel';
+
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -10,7 +12,6 @@ async function bootstrap() {
   app.enableShutdownHooks();
   app.use(helmet());
 
-  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -19,18 +20,17 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger config
   const config = new DocumentBuilder()
     .setTitle('Pokemon API')
-    .setDescription('API proxy para PokeAPI - Listagem e busca de Pokémons')
+    .setDescription('Proxy API for PokeAPI - listing and searching Pokémon')
     .setVersion('1.0')
-    .addTag('pokemon', 'Endpoints relacionados a Pokémons')
+    .addTag('pokemon', 'Pokémon-related endpoints')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(ENV.PORT);
+  await app.listen(ENV.PORT, '0.0.0.0');
 
    const url = await app.getUrl();
   const swaggerLink = `Swagger link: ${url}/api/docs`;

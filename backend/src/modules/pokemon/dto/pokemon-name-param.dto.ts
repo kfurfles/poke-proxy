@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
 export class PokemonNameParamDto {
   @ApiProperty({
-    description: 'Nome do pokémon (case-insensitive)',
+    description: 'Pokémon name (case-insensitive)',
     example: 'pikachu',
     pattern: '^[a-zA-Z0-9-]+$',
   })

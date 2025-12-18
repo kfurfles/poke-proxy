@@ -25,19 +25,19 @@ export class PokemonController {
 
   @Get()
   @ApiOperation({
-    summary: 'Listar pokémons',
+    summary: 'List Pokémon',
     description:
-      'Retorna uma lista paginada de pokémons com metadados de navegação',
+      'Returns a paginated list of Pokémon with navigation metadata',
   })
   @ApiResponse({
     status: 200,
-    description: 'Lista de pokémons retornada com sucesso',
+    description: 'Pokémon list returned successfully',
     type: ListPokemonsResponseDto,
   })
   @ApiResponse({
     status: 400,
     description:
-      'Parâmetros inválidos (limit fora do range 10-20 ou offset negativo)',
+      'Invalid parameters (limit out of range 10-20 or negative offset)',
   })
   async listPokemons(@Query() query: ListPokemonsQueryDto) {
     const result = await this.listPokemonsUseCase.execute({
@@ -58,24 +58,24 @@ export class PokemonController {
 
   @Get(':name')
   @ApiOperation({
-    summary: 'Buscar pokémon por nome',
+    summary: 'Get Pokémon by name',
     description:
-      'Retorna informações detalhadas de um pokémon específico (case-insensitive)',
+      'Returns detailed information for a specific Pokémon (case-insensitive)',
   })
   @ApiParam({
     name: 'name',
-    description: 'Nome do pokémon',
+    description: 'Pokémon name',
     example: 'pikachu',
     type: String,
   })
   @ApiResponse({
     status: 200,
-    description: 'Pokémon encontrado',
+    description: 'Pokémon found',
     type: PokemonResponseDto,
   })
   @ApiResponse({
     status: 404,
-    description: 'Pokémon não encontrado',
+    description: 'Pokémon not found',
   })
   async getPokemonByName(@Param() params: PokemonNameParamDto) {
     const result = await this.getPokemonByNameUseCase.execute({

@@ -6,7 +6,6 @@ import { LogContext } from '@/shared/decorators';
 import { LoggerService } from '@/shared/logger';
 import { CACHE_PORT, type CachePort } from '@/shared/cache';
 
-// Input/Output Contracts
 export interface GetPokemonByNameUseCaseInput {
   name: string;
 }
@@ -123,7 +122,6 @@ export class GetPokemonByNameUseCase {
       return { type: 'validation', message: 'Pokemon name is required' };
     }
 
-    // Check if name contains only valid characters (letters, numbers, hyphens)
     const validNamePattern = /^[a-zA-Z0-9-]+$/;
     if (!validNamePattern.test(input.name)) {
       return {

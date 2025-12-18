@@ -12,7 +12,6 @@ export class CacheService implements CachePort, OnApplicationShutdown {
     @Inject(REDIS_CLIENT) private readonly client: RedisClientType,
     private readonly logger: LoggerService,
   ) {
-    // Avoid process-level unhandled errors (e.g. container stops during tests)
     this.client.on('error', (error) => {
       this.logger.warn('[Cache] Redis client error', {
         errorMessage: error instanceof Error ? error.message : String(error),

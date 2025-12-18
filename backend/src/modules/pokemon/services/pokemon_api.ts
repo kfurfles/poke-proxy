@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import axios, { type AxiosError, type AxiosInstance } from 'axios';
 
-// Domain Types
 export interface PokemonBasicInfo {
   name: string;
   url: string;

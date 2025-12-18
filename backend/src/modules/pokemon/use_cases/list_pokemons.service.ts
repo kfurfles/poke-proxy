@@ -6,7 +6,6 @@ import { LogContext } from '@/shared/decorators';
 import { LoggerService } from '@/shared/logger';
 import { CACHE_PORT, type CachePort } from '@/shared/cache';
 
-// Input/Output Contracts
 export interface ListPokemonsUseCaseInput {
   limit?: number;
   offset?: number;
@@ -108,7 +107,6 @@ export class ListPokemonsUseCase {
         ? input.offset
         : this.DEFAULT_OFFSET;
 
-    // Validate limit range
     if (limit < this.MIN_LIMIT || limit > this.MAX_LIMIT) {
       return {
         error: {
@@ -118,7 +116,6 @@ export class ListPokemonsUseCase {
       };
     }
 
-    // Validate offset is non-negative
     if (offset < 0) {
       return {
         error: { type: 'validation', message: 'Offset must be non-negative' },

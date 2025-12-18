@@ -70,7 +70,6 @@ describe('Cache (e2e)', () => {
 
     expect(first.body).toEqual({ calls: 1 });
 
-    // withCache saves in fire-and-forget; give Redis a moment
     await sleep(50);
 
     const second = await request(app.getHttpServer())

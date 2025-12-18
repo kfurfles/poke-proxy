@@ -4,7 +4,7 @@ import { IsInt, IsOptional, Max, Min } from 'class-validator';
 
 export class ListPokemonsQueryDto {
   @ApiProperty({
-    description: 'Número de pokémons por página',
+    description: 'Number of Pokémon per page',
     minimum: 10,
     maximum: 20,
     default: 20,
@@ -19,7 +19,7 @@ export class ListPokemonsQueryDto {
   limit?: number = 20;
 
   @ApiProperty({
-    description: 'Número de registros a pular',
+    description: 'Number of records to skip',
     minimum: 0,
     default: 0,
     required: false,

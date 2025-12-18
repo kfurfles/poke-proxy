@@ -3,7 +3,6 @@ import { ValidationPipe } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
-import { AppModule } from '@/app.module';
 import type { StartedRedisContainer } from '@testcontainers/redis';
 import { startRedisE2E } from './utils/redis-testcontainer';
 
@@ -16,6 +15,7 @@ describe('AppController (e2e)', () => {
     redis = started.container;
     process.env.REDIS_URL = started.redisUrl;
 
+    const { AppModule } = await import('@/app.module');
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();

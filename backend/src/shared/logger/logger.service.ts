@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { mkdirSync } from 'node:fs';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
+import { context, trace } from '@opentelemetry/api';
 import { RequestContextService } from '../context';
 
 @Injectable()
@@ -82,9 +83,15 @@ export class LoggerService {
 
   private enrichWithContext(meta?: any): any {
     const contextData = this.requestContextService.getContextData();
+
+    const span = trace.getSpan(context.active());
+    const spanContext = span?.spanContext();
+
     return {
       ...meta,
       ...contextData,
+      traceId: spanContext?.traceId,
+      spanId: spanContext?.spanId,
     };
   }
 }

@@ -9,12 +9,17 @@ export const envSchema = z.object({
     .string()
     .transform(Number)
     .pipe(z.number().min(1).max(65535))
-    .default(3000),
+    .default(3001),
+  REDIS_URL: z.string().default('redis://localhost:6379'),
   THROTTLE_LIMIT: z
     .string()
     .transform(Number)
     .pipe(z.number().min(1).max(1000))
     .default(10),
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: z
+    .string()
+    .url()
+    .default('http://localhost:4318/v1/traces'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
