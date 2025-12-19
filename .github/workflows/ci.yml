@@ -149,12 +149,4 @@ jobs:
           path: front-end/playwright-report/
           retention-days: 7
 
-      - name: Upload screenshots
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-screenshots
-          path: front-end/project/assets/phase-05/mocked/
-          retention-days: 7
-
 
