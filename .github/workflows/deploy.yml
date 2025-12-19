@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  deployments: write  # Necessário para criar deployment records
 
 jobs:
   test:
@@ -50,7 +51,19 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment:
+      name: production-backend
+      url: https://preview-api-poke-proxy.onrender.com/api/docs
     steps:
+      - name: Start Backend Deployment
+        uses: bobheadxi/deployments@v1
+        id: backend-deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: production-backend
+          ref: ${{ github.ref }}
+
       - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
@@ -64,12 +77,35 @@ jobs:
           echo ""
           echo "✅ Backend deployed successfully!"
 
+      - name: Update Backend Deployment Status
+        uses: bobheadxi/deployments@v1
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          env: ${{ steps.backend-deployment.outputs.env }}
+          deployment_id: ${{ steps.backend-deployment.outputs.deployment_id }}
+          env_url: https://preview-api-poke-proxy.onrender.com/api/docs
+
   deploy-frontend:
     name: Deploy Frontend
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment:
+      name: production-frontend
+      url: https://preview-poke-proxy.onrender.com/
     steps:
+      - name: Start Frontend Deployment
+        uses: bobheadxi/deployments@v1
+        id: frontend-deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: production-frontend
+          ref: ${{ github.ref }}
+
       - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
@@ -82,6 +118,17 @@ jobs:
             -d "{}"
           echo ""
           echo "✅ Frontend deployed successfully!"
+
+      - name: Update Frontend Deployment Status
+        uses: bobheadxi/deployments@v1
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          env: ${{ steps.frontend-deployment.outputs.env }}
+          deployment_id: ${{ steps.frontend-deployment.outputs.deployment_id }}
+          env_url: https://preview-poke-proxy.onrender.com/
 
   summary:
     name: Deployment Summary
@@ -104,4 +151,8 @@ jobs:
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ All services deployed successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 View Deployments" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the [Deployments page](https://github.com/${{ github.repository }}/deployments) to see all deployment records." >> $GITHUB_STEP_SUMMARY
 
