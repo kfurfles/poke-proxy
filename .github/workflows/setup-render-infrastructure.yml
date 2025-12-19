@@ -1,0 +1,255 @@
+name: Setup Render Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      github_repo_url:
+        description: 'GitHub Repository URL (e.g., https://github.com/username/poke-proxy)'
+        required: true
+        type: string
+
+jobs:
+  setup-infrastructure:
+    name: Create Render Services
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate inputs
+        run: |
+          echo "Repository URL: ${{ github.event.inputs.github_repo_url }}"
+          echo "Creating infrastructure..."
+
+      - name: Create Preview Environment
+        id: preview
+        run: |
+          echo "🏗️  Creating Preview Environment..."
+          
+          # 1. Create Redis Preview
+          echo "Creating redis-preview..."
+          REDIS_PREVIEW_RESPONSE=$(curl --silent --request POST \
+            --url 'https://api.render.com/v1/services' \
+            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "type": "redis",
+              "name": "redis-preview",
+              "plan": "free",
+              "region": "oregon"
+            }')
+          
+          REDIS_PREVIEW_ID=$(echo $REDIS_PREVIEW_RESPONSE | jq -r '.id')
+          REDIS_PREVIEW_HOST=$(echo $REDIS_PREVIEW_RESPONSE | jq -r '.serviceDetails.host // "pending"')
+          echo "✅ Redis Preview created: $REDIS_PREVIEW_ID"
+          
+          # Wait a bit for Redis to initialize
+          sleep 10
+          
+          # 2. Create Backend Preview
+          echo "Creating backend-preview..."
+          BACKEND_PREVIEW_RESPONSE=$(curl --silent --request POST \
+            --url 'https://api.render.com/v1/services' \
+            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --header 'Content-Type: application/json' \
+            --data "{
+              \"type\": \"web_service\",
+              \"name\": \"backend-preview\",
+              \"plan\": \"free\",
+              \"region\": \"oregon\",
+              \"repo\": \"${{ github.event.inputs.github_repo_url }}\",
+              \"branch\": \"development\",
+              \"rootDir\": \"backend\",
+              \"buildCommand\": \"npm ci && npm run build\",
+              \"startCommand\": \"npm run start:prod\",
+              \"autoDeploy\": \"no\",
+              \"healthCheckPath\": \"/health\",
+              \"envVars\": [
+                {\"key\": \"NODE_ENV\", \"value\": \"production\"},
+                {\"key\": \"PORT\", \"value\": \"10000\"},
+                {\"key\": \"REDIS_HOST\", \"value\": \"$REDIS_PREVIEW_HOST\"},
+                {\"key\": \"REDIS_PORT\", \"value\": \"6379\"},
+                {\"key\": \"WARMUP_FAMOUS_POKEMON_CACHE\", \"value\": \"false\"}
+              ]
+            }")
+          
+          BACKEND_PREVIEW_ID=$(echo $BACKEND_PREVIEW_RESPONSE | jq -r '.id')
+          BACKEND_PREVIEW_NAME=$(echo $BACKEND_PREVIEW_RESPONSE | jq -r '.name')
+          BACKEND_PREVIEW_URL=$(echo $BACKEND_PREVIEW_RESPONSE | jq -r '.serviceDetails.url // "pending"')
+          echo "✅ Backend Preview created: $BACKEND_PREVIEW_ID"
+          
+          # 3. Create Frontend Preview
+          echo "Creating frontend-preview..."
+          FRONTEND_PREVIEW_RESPONSE=$(curl --silent --request POST \
+            --url 'https://api.render.com/v1/services' \
+            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --header 'Content-Type: application/json' \
+            --data "{
+              \"type\": \"static_site\",
+              \"name\": \"frontend-preview\",
+              \"region\": \"oregon\",
+              \"repo\": \"${{ github.event.inputs.github_repo_url }}\",
+              \"branch\": \"development\",
+              \"rootDir\": \"front-end\",
+              \"buildCommand\": \"npm ci && npm run build\",
+              \"publishPath\": \"dist\",
+              \"autoDeploy\": \"no\",
+              \"envVars\": [
+                {\"key\": \"VITE_API_BASE_URL\", \"value\": \"https://backend-preview.onrender.com\"},
+                {\"key\": \"VITE_APP_ENV\", \"value\": \"production\"}
+              ],
+              \"routes\": [
+                {
+                  \"type\": \"rewrite\",
+                  \"source\": \"/*\",
+                  \"destination\": \"/index.html\"
+                }
+              ]
+            }")
+          
+          FRONTEND_PREVIEW_ID=$(echo $FRONTEND_PREVIEW_RESPONSE | jq -r '.id')
+          FRONTEND_PREVIEW_NAME=$(echo $FRONTEND_PREVIEW_RESPONSE | jq -r '.name')
+          echo "✅ Frontend Preview created: $FRONTEND_PREVIEW_ID"
+          
+          # Save IDs for next step
+          echo "redis_preview_id=$REDIS_PREVIEW_ID" >> $GITHUB_OUTPUT
+          echo "backend_preview_id=$BACKEND_PREVIEW_ID" >> $GITHUB_OUTPUT
+          echo "backend_preview_name=$BACKEND_PREVIEW_NAME" >> $GITHUB_OUTPUT
+          echo "frontend_preview_id=$FRONTEND_PREVIEW_ID" >> $GITHUB_OUTPUT
+          echo "frontend_preview_name=$FRONTEND_PREVIEW_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Production Environment
+        id: production
+        run: |
+          echo "🏗️  Creating Production Environment..."
+          
+          # 1. Create Redis Production
+          echo "Creating redis-prod..."
+          REDIS_PROD_RESPONSE=$(curl --silent --request POST \
+            --url 'https://api.render.com/v1/services' \
+            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "type": "redis",
+              "name": "redis-prod",
+              "plan": "free",
+              "region": "oregon"
+            }')
+          
+          REDIS_PROD_ID=$(echo $REDIS_PROD_RESPONSE | jq -r '.id')
+          REDIS_PROD_HOST=$(echo $REDIS_PROD_RESPONSE | jq -r '.serviceDetails.host // "pending"')
+          echo "✅ Redis Production created: $REDIS_PROD_ID"
+          
+          # Wait a bit for Redis to initialize
+          sleep 10
+          
+          # 2. Create Backend Production
+          echo "Creating poke-proxy-backend..."
+          BACKEND_PROD_RESPONSE=$(curl --silent --request POST \
+            --url 'https://api.render.com/v1/services' \
+            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --header 'Content-Type: application/json' \
+            --data "{
+              \"type\": \"web_service\",
+              \"name\": \"poke-proxy-backend\",
+              \"plan\": \"free\",
+              \"region\": \"oregon\",
+              \"repo\": \"${{ github.event.inputs.github_repo_url }}\",
+              \"branch\": \"main\",
+              \"rootDir\": \"backend\",
+              \"buildCommand\": \"npm ci && npm run build\",
+              \"startCommand\": \"npm run start:prod\",
+              \"autoDeploy\": \"no\",
+              \"healthCheckPath\": \"/health\",
+              \"envVars\": [
+                {\"key\": \"NODE_ENV\", \"value\": \"production\"},
+                {\"key\": \"PORT\", \"value\": \"10000\"},
+                {\"key\": \"REDIS_HOST\", \"value\": \"$REDIS_PROD_HOST\"},
+                {\"key\": \"REDIS_PORT\", \"value\": \"6379\"},
+                {\"key\": \"WARMUP_FAMOUS_POKEMON_CACHE\", \"value\": \"false\"}
+              ]
+            }")
+          
+          BACKEND_PROD_ID=$(echo $BACKEND_PROD_RESPONSE | jq -r '.id')
+          BACKEND_PROD_NAME=$(echo $BACKEND_PROD_RESPONSE | jq -r '.name')
+          BACKEND_PROD_URL=$(echo $BACKEND_PROD_RESPONSE | jq -r '.serviceDetails.url // "pending"')
+          echo "✅ Backend Production created: $BACKEND_PROD_ID"
+          
+          # 3. Create Frontend Production
+          echo "Creating poke-proxy-frontend..."
+          FRONTEND_PROD_RESPONSE=$(curl --silent --request POST \
+            --url 'https://api.render.com/v1/services' \
+            --header "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            --header 'Content-Type: application/json' \
+            --data "{
+              \"type\": \"static_site\",
+              \"name\": \"poke-proxy-frontend\",
+              \"region\": \"oregon\",
+              \"repo\": \"${{ github.event.inputs.github_repo_url }}\",
+              \"branch\": \"main\",
+              \"rootDir\": \"front-end\",
+              \"buildCommand\": \"npm ci && npm run build\",
+              \"publishPath\": \"dist\",
+              \"autoDeploy\": \"no\",
+              \"envVars\": [
+                {\"key\": \"VITE_API_BASE_URL\", \"value\": \"https://poke-proxy-backend.onrender.com\"},
+                {\"key\": \"VITE_APP_ENV\", \"value\": \"production\"}
+              ],
+              \"routes\": [
+                {
+                  \"type\": \"rewrite\",
+                  \"source\": \"/*\",
+                  \"destination\": \"/index.html\"
+                }
+              ]
+            }")
+          
+          FRONTEND_PROD_ID=$(echo $FRONTEND_PROD_RESPONSE | jq -r '.id')
+          FRONTEND_PROD_NAME=$(echo $FRONTEND_PROD_RESPONSE | jq -r '.name')
+          echo "✅ Frontend Production created: $FRONTEND_PROD_ID"
+          
+          # Save IDs
+          echo "redis_prod_id=$REDIS_PROD_ID" >> $GITHUB_OUTPUT
+          echo "backend_prod_id=$BACKEND_PROD_ID" >> $GITHUB_OUTPUT
+          echo "backend_prod_name=$BACKEND_PROD_NAME" >> $GITHUB_OUTPUT
+          echo "frontend_prod_id=$FRONTEND_PROD_ID" >> $GITHUB_OUTPUT
+          echo "frontend_prod_name=$FRONTEND_PROD_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Summary
+        run: |
+          echo "## 🎉 Infrastructure Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Preview Environment" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend**: https://${{ steps.preview.outputs.frontend_preview_name }}.onrender.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend**: https://${{ steps.preview.outputs.backend_preview_name }}.onrender.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Redis**: Internal (connected to backend)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Production Environment" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend**: https://${{ steps.production.outputs.frontend_prod_name }}.onrender.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend**: https://${{ steps.production.outputs.backend_prod_name }}.onrender.com" >> $GITHUB_STEP_SUMMARY
+          echo "- **Redis**: Internal (connected to backend)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Configure the following GitHub Secrets:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "# Preview" >> $GITHUB_STEP_SUMMARY
+          echo "gh secret set RENDER_FRONTEND_PREVIEW_ID -b \"${{ steps.preview.outputs.frontend_preview_id }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "gh secret set RENDER_FRONTEND_PREVIEW_NAME -b \"${{ steps.preview.outputs.frontend_preview_name }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "gh secret set RENDER_BACKEND_PREVIEW_ID -b \"${{ steps.preview.outputs.backend_preview_id }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "gh secret set RENDER_BACKEND_PREVIEW_NAME -b \"${{ steps.preview.outputs.backend_preview_name }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Production" >> $GITHUB_STEP_SUMMARY
+          echo "gh secret set RENDER_FRONTEND_PROD_ID -b \"${{ steps.production.outputs.frontend_prod_id }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "gh secret set RENDER_FRONTEND_PROD_NAME -b \"${{ steps.production.outputs.frontend_prod_name }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "gh secret set RENDER_BACKEND_PROD_ID -b \"${{ steps.production.outputs.backend_prod_id }}\"" >> $GITHUB_STEP_SUMMARY
+          echo "gh secret set RENDER_BACKEND_PROD_NAME -b \"${{ steps.production.outputs.backend_prod_name }}\"" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          echo ""
+          echo "✅ All 6 services created successfully!"
+          echo "📋 Service IDs saved in workflow outputs"
+          echo "🔑 Configure secrets above to enable deploy workflows"
+
