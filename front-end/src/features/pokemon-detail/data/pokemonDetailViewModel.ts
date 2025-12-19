@@ -24,17 +24,17 @@ export interface PokemonDetailViewModel {
 /**
  * Transform PokemonResponseDto into a UI-optimized detail view model.
  * Includes display-friendly transformations for height/weight.
+ * Uses high-quality official artwork (475x475px) with fallback to standard sprite.
  */
 export function toPokemonDetailViewModel(dto: PokemonResponseDto): PokemonDetailViewModel {
-  // Extract frontDefault sprite URL
+  // Extract image directly from DTO (already processed by backend with fallback)
   let image: string | null = null
 
-  if (dto.sprites?.frontDefault) {
-    const frontDefault = dto.sprites.frontDefault
-    if (typeof frontDefault === 'string') {
-      image = frontDefault
-    } else if (typeof frontDefault === 'object' && frontDefault !== null) {
-      const possibleUrl = (frontDefault as Record<string, unknown>).url
+  if (dto.image) {
+    if (typeof dto.image === 'string') {
+      image = dto.image
+    } else if (typeof dto.image === 'object' && dto.image !== null) {
+      const possibleUrl = (dto.image as Record<string, unknown>).url
       if (typeof possibleUrl === 'string') {
         image = possibleUrl
       }

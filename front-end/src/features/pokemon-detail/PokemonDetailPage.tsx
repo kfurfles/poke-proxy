@@ -1,164 +1,111 @@
+import { useEffect } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
+import { motion } from 'framer-motion'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import { TypeBackground } from '../../shared/ui/TypeBackground'
 import { usePokemonDetail } from './data/usePokemonDetail'
+import { PokemonHero } from './components/PokemonHero'
+import { PokemonAbilities } from './components/PokemonAbilities'
+import { PokemonStats } from './components/PokemonStats'
+import { motionTokens } from '../../shared/motion/tokens'
 
 export function PokemonDetailPage() {
   const { idOrName } = useParams({ strict: false }) as { idOrName?: string }
 
   const { pokemon, isLoading, isError, error } = usePokemonDetail(idOrName)
 
+  // Scroll to top when page loads or Pokemon changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [idOrName])
+
+  const primaryType = pokemon?.types[0]
+
   if (isError) {
     return (
-      <div style={{ padding: 16 }}>
-        <Link to="/" style={{ display: 'inline-block', marginBottom: 16 }}>
-          ← Voltar para Pokédex
-        </Link>
-        <h1>Erro</h1>
-        <p style={{ color: 'red' }}>Não foi possível carregar o Pokémon "{idOrName}".</p>
-        {error && <p style={{ color: '#666', fontSize: 14 }}>{error.message}</p>}
+      <div className="relative min-h-screen bg-linear-to-br from-slate-200/70 to-slate-50">
+        <div className="mx-auto max-w-5xl px-4 py-8">
+          <Link
+            to="/"
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-3 text-sm font-medium text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Voltar para Pokédex
+          </Link>
+          <div className="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-md">
+            <h1 className="mb-4 text-2xl font-bold text-slate-800">Erro</h1>
+            <p className="mb-2 text-red-600">
+              Não foi possível carregar o Pokémon "{idOrName}".
+            </p>
+            {error && <p className="text-sm text-slate-600">{error.message}</p>}
+          </div>
+        </div>
       </div>
     )
   }
 
   if (isLoading || !pokemon) {
     return (
-      <div style={{ padding: 16 }}>
-        <Link to="/" style={{ display: 'inline-block', marginBottom: 16 }}>
-          ← Voltar para Pokédex
-        </Link>
-        <LoadingSpinner />
+      <div className="relative min-h-screen bg-linear-to-br from-slate-200/70 to-slate-50">
+        <div className="mx-auto max-w-5xl px-4 py-8">
+          <Link
+            to="/"
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-3 text-sm font-medium text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Voltar para Pokédex
+          </Link>
+          <div className="flex items-center justify-center py-20">
+            <LoadingSpinner />
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 800, margin: '0 auto' }}>
-      <Link to="/" style={{ display: 'inline-block', marginBottom: 16 }}>
-        ← Voltar para Pokédex
-      </Link>
+    <div className="relative min-h-screen">
+      {/* Type-specific background */}
+      <TypeBackground type={primaryType} />
 
-      <div style={{ border: '1px solid #ccc', borderRadius: 8, padding: 24 }}>
-        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 24 }}>
-          {pokemon.image ? (
-            <img
-              src={pokemon.image}
-              alt={pokemon.name}
-              style={{ width: 200, height: 200, objectFit: 'contain' }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 200,
-                height: 200,
-                background: '#f0f0f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              No image
-            </div>
-          )}
+      {/* Content */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: motionTokens.durations.normal }}
+        className="relative z-10 mx-auto max-w-5xl px-6 py-8 pb-16"
+      >
+        {/* Back Button */}
+        <Link
+          to="/"
+          className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-3 text-sm font-medium text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Voltar para Pokédex
+        </Link>
 
-          <div style={{ flex: 1 }}>
-            <h1 style={{ margin: '0 0 8px', textTransform: 'capitalize' }}>
-              {pokemon.name}
-              <span style={{ fontSize: 18, color: '#666', marginLeft: 8 }}>
-                #{pokemon.id.toString().padStart(3, '0')}
-              </span>
-            </h1>
+        {/* Hero Section */}
+        <PokemonHero
+          id={pokemon.id}
+          name={pokemon.name}
+          image={pokemon.image}
+          types={pokemon.types}
+          heightInMeters={pokemon.heightInMeters}
+          weightInKg={pokemon.weightInKg}
+        />
 
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              {pokemon.types.map((type) => (
-                <span
-                  key={type}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 16,
-                    background: '#ddd',
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {type}
-                </span>
-              ))}
-            </div>
+        {/* Abilities Section */}
+        <PokemonAbilities abilities={pokemon.abilities} />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <strong>Altura:</strong> {pokemon.heightInMeters} m
-              </div>
-              <div>
-                <strong>Peso:</strong> {pokemon.weightInKg} kg
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{ marginBottom: 12 }}>Habilidades</h2>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: 12,
-            }}
-          >
-            {pokemon.abilities.map((ability) => (
-              <div
-                key={ability.name}
-                style={{
-                  padding: 12,
-                  border: ability.isHidden ? '2px solid purple' : '1px solid #ccc',
-                  borderRadius: 8,
-                  background: ability.isHidden ? '#f9f0ff' : '#fff',
-                }}
-              >
-                <div style={{ fontWeight: 'bold', textTransform: 'capitalize', marginBottom: 4 }}>
-                  {ability.name.replace('-', ' ')}
-                </div>
-                {ability.isHidden && (
-                  <div style={{ fontSize: 12, color: 'purple' }}>Habilidade Oculta</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 style={{ marginBottom: 12 }}>Stats</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {pokemon.stats.map((stat) => (
-              <div key={stat.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 120, textTransform: 'capitalize', fontSize: 14 }}>
-                  {stat.name.replace('-', ' ')}
-                </div>
-                <div
-                  style={{
-                    flex: 1,
-                    background: '#f0f0f0',
-                    height: 24,
-                    borderRadius: 4,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${Math.min((stat.baseStat / 255) * 100, 100)}%`,
-                      height: '100%',
-                      background: 'linear-gradient(90deg, #4ade80, #22c55e)',
-                      transition: 'width 0.5s ease',
-                    }}
-                  />
-                </div>
-                <div style={{ width: 40, textAlign: 'right', fontWeight: 'bold' }}>
-                  {stat.baseStat}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+        {/* Stats Section */}
+        <PokemonStats stats={pokemon.stats} primaryType={primaryType} />
+      </motion.div>
     </div>
   )
 }

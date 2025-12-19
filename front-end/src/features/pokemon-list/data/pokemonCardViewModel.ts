@@ -9,31 +9,13 @@ export interface PokemonCardViewModel {
 
 /**
  * Transform PokemonResponseDto into a UI-optimized card view model.
- * Handles missing/malformed sprite data gracefully.
+ * Uses high-quality official artwork (475x475px) with fallback to standard sprite.
  */
 export function toPokemonCardViewModel(dto: PokemonResponseDto): PokemonCardViewModel {
-  // Extract frontDefault sprite URL, handling various possible shapes
-  let image: string | null = null
-
-  if (dto.sprites?.frontDefault) {
-    const frontDefault = dto.sprites.frontDefault
-    // The DTO type shows frontDefault as { [key: string]: unknown }
-    // In reality, it's likely a string URL. Handle both cases.
-    if (typeof frontDefault === 'string') {
-      image = frontDefault
-    } else if (typeof frontDefault === 'object' && frontDefault !== null) {
-      // If it's an object, try to extract a URL property
-      const possibleUrl = (frontDefault as Record<string, unknown>).url
-      if (typeof possibleUrl === 'string') {
-        image = possibleUrl
-      }
-    }
-  }
-
   return {
     id: dto.id,
     name: dto.name,
-    image,
+    image: dto.image,
     types: dto.types,
   }
 }

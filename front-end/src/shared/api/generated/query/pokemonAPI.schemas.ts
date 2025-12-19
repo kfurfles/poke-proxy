@@ -16,21 +16,6 @@ export interface ListPokemonsResponseDto {
   hasPrevious: boolean
 }
 
-export type PokemonSpritesDtoFrontDefault = { [key: string]: unknown }
-
-export type PokemonSpritesDtoFrontShiny = { [key: string]: unknown }
-
-export type PokemonSpritesDtoBackDefault = { [key: string]: unknown }
-
-export type PokemonSpritesDtoBackShiny = { [key: string]: unknown }
-
-export interface PokemonSpritesDto {
-  frontDefault: PokemonSpritesDtoFrontDefault
-  frontShiny: PokemonSpritesDtoFrontShiny
-  backDefault: PokemonSpritesDtoBackDefault
-  backShiny: PokemonSpritesDtoBackShiny
-}
-
 export interface PokemonStatDto {
   name: string
   baseStat: number
@@ -51,7 +36,8 @@ export interface PokemonResponseDto {
   /** Weight in hectograms */
   weight: number
   baseExperience: number
-  sprites: PokemonSpritesDto
+  /** High-quality official artwork (475x475px) */
+  image: string
   stats: PokemonStatDto[]
   types: string[]
   abilities: PokemonAbilityDto[]

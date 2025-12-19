@@ -57,12 +57,7 @@ export const pokemonControllerGetPokemonByNameResponse = zod.object({
   height: zod.number().describe('Height in decimeters'),
   weight: zod.number().describe('Weight in hectograms'),
   baseExperience: zod.number(),
-  sprites: zod.object({
-    frontDefault: zod.object({}),
-    frontShiny: zod.object({}),
-    backDefault: zod.object({}),
-    backShiny: zod.object({}),
-  }),
+  image: zod.string().describe('High-quality official artwork (475x475px)'),
   stats: zod.array(
     zod.object({
       name: zod.string(),
