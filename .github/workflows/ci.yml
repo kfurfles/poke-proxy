@@ -121,7 +121,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: front-end
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps
 
       - name: Start dev server
         working-directory: front-end
