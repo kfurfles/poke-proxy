@@ -84,6 +84,14 @@ frontend-install:
 frontend-build:
 	npm --prefix $(FRONTEND_DIR) run build
 
+.PHONY: frontend-test-e2e
+frontend-test-e2e:
+	npm --prefix $(FRONTEND_DIR) run test:e2e
+
+.PHONY: frontend-test-e2e-ci
+frontend-test-e2e-ci:
+	npm --prefix $(FRONTEND_DIR) run test:e2e:ci -- pokedex-mocked.spec.ts
+
 .PHONY: ci-backend-unit
 ci-backend-unit: backend-install backend-test
 
@@ -93,5 +101,8 @@ ci-backend-e2e: backend-install backend-test-e2e
 .PHONY: ci-frontend-build
 ci-frontend-build: frontend-install frontend-build
 
+.PHONY: ci-frontend-e2e
+ci-frontend-e2e: frontend-install frontend-test-e2e-ci
+
 .PHONY: ci
-ci: ci-backend-unit ci-backend-e2e ci-frontend-build
+ci: ci-backend-unit ci-backend-e2e ci-frontend-build ci-frontend-e2e

@@ -10,7 +10,9 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "api:generate": "orval --config ./orval.config.ts && biome format --write ./src/shared/api/generated",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ci": "playwright test --reporter=html --reporter=junit"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.12",
