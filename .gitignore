@@ -1,0 +1,21 @@
+# Credentials and sensitive files
+info
+dados_gh.txt
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+

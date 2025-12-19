@@ -1,9 +1,16 @@
-# Poke Proxy (Backend)
+# Poke Proxy
 
 Proxy built with **NestJS** for the **PokeAPI**.
 
 - **Core (challenge)**: `GET /pokemon` and `GET /pokemon/:name` (with `abilities[].name` **sorted**)
 - **Extras (showcase)**: cache (Redis) + observability (Grafana/Prometheus/Loki/Tempo) + optional warm-up (Gemini)
+
+## Production
+
+| Service | URL |
+|---------|-----|
+| Backend API (Swagger) | https://preview-api-poke-proxy.onrender.com/api/docs |
+| Frontend | https://preview-poke-proxy.onrender.com/ |
 
 ## How to run & validate (60s)
 

@@ -1,9 +1,10 @@
 name: CI
 
 on:
-  push:
-    branches: ["**"]
   pull_request:
+    branches:
+      - main
+      - development
 
 permissions:
   contents: read
@@ -120,7 +121,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: front-end
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps
 
       - name: Start dev server
         working-directory: front-end
@@ -146,14 +147,6 @@ jobs:
         with:
           name: playwright-report
           path: front-end/playwright-report/
-          retention-days: 7
-
-      - name: Upload screenshots
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-screenshots
-          path: front-end/project/assets/phase-05/mocked/
           retention-days: 7
 
 

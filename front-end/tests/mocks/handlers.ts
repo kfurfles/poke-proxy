@@ -11,71 +11,103 @@ import { mockPokemonListPage1, mockPokemonListPage2 } from './pokemon-list.mock'
  * Intercepts calls to the proxy backend and returns mock data
  */
 export async function setupMocks(page: Page) {
-  // Mock Pokemon list endpoint - page 1
-  await page.route('**/api/pokemon?offset=0&limit=20', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockPokemonListPage1),
-    })
+  // Mock Pokemon list endpoint with flexible query params
+  await page.route('**/pokemon?*', async (route: Route) => {
+    const url = new URL(route.request().url())
+    const offset = Number.parseInt(url.searchParams.get('offset') || '0', 10)
+    
+    if (offset === 0) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockPokemonListPage1),
+      })
+    } else if (offset === 20) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockPokemonListPage2),
+      })
+    } else {
+      await route.continue()
+    }
   })
 
-  // Mock Pokemon list endpoint - page 2 (infinite scroll)
-  await page.route('**/api/pokemon?offset=20&limit=20', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockPokemonListPage2),
-    })
-  })
-
-  // Mock Pokemon detail endpoints
-  await page.route('**/api/pokemon/1', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockBulbasaurDetail),
-    })
-  })
-
-  await page.route('**/api/pokemon/bulbasaur', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockBulbasaurDetail),
-    })
-  })
-
-  await page.route('**/api/pokemon/4', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockCharmanderDetail),
-    })
-  })
-
-  await page.route('**/api/pokemon/charmander', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockCharmanderDetail),
-    })
-  })
-
-  await page.route('**/api/pokemon/7', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockSquirtleDetail),
-    })
-  })
-
-  await page.route('**/api/pokemon/squirtle', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockSquirtleDetail),
-    })
+  // Generic mock for any pokemon detail requests
+  await page.route('**/pokemon/*', async (route: Route) => {
+    const url = route.request().url()
+    const match = url.match(/pokemon\/(.+)$/)
+    
+    if (!match) {
+      await route.continue()
+      return
+    }
+    
+    const nameOrId = match[1]
+    
+    // Check for specific mocks first
+    if (nameOrId === '1' || nameOrId === 'bulbasaur') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockBulbasaurDetail),
+      })
+      return
+    }
+    
+    if (nameOrId === '4' || nameOrId === 'charmander') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockCharmanderDetail),
+      })
+      return
+    }
+    
+    if (nameOrId === '7' || nameOrId === 'squirtle') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockSquirtleDetail),
+      })
+      return
+    }
+    
+    // Generic mock for pokemon-{number} pattern
+    const pokemonMatch = nameOrId.match(/^pokemon-(\d+)$/)
+    if (pokemonMatch) {
+      const id = Number.parseInt(pokemonMatch[1], 10)
+      const mockDetail = {
+        id,
+        name: `pokemon-${id}`,
+        height: 10,
+        weight: 100,
+        baseExperience: 100,
+        image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+        stats: [
+          { name: 'hp', baseStat: 45, effort: 0 },
+          { name: 'attack', baseStat: 49, effort: 0 },
+          { name: 'defense', baseStat: 49, effort: 0 },
+          { name: 'special-attack', baseStat: 65, effort: 1 },
+          { name: 'special-defense', baseStat: 65, effort: 0 },
+          { name: 'speed', baseStat: 45, effort: 0 },
+        ],
+        types: ['normal'],
+        abilities: [
+          { name: 'overgrow', isHidden: false, slot: 1 },
+          { name: 'chlorophyll', isHidden: true, slot: 3 },
+        ],
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockDetail),
+      })
+      return
+    }
+    
+    // If no match, continue to real API
+    await route.continue()
   })
 
   // Allow image requests to pass through
@@ -93,28 +125,21 @@ export async function setupMocks(page: Page) {
  * Useful for tests that need to scroll through multiple pages
  */
 export async function setupInfiniteScrollMocks(page: Page) {
-  await page.route('**/api/pokemon?**', async (route: Route) => {
+  await page.route('**/pokemon?**', async (route: Route) => {
     const url = new URL(route.request().url())
     const offset = Number.parseInt(url.searchParams.get('offset') || '0', 10)
     const limit = Number.parseInt(url.searchParams.get('limit') || '20', 10)
 
-    const data = Array.from({ length: limit }, (_, i) => ({
-      id: offset + i + 1,
-      name: `pokemon-${offset + i + 1}`,
-      image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${offset + i + 1}.png`,
-      types: ['normal'],
-    }))
+    const pokemons = Array.from({ length: limit }, (_, i) => `pokemon-${offset + i + 1}`)
 
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        data,
-        pagination: {
-          offset,
-          limit,
-          total: 1000,
-        },
+        pokemons,
+        total: 1000,
+        hasNext: offset + limit < 1000,
+        hasPrevious: offset > 0,
       }),
     })
   })

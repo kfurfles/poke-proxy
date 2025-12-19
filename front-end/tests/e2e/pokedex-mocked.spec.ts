@@ -1,13 +1,10 @@
-import path from 'node:path'
 import { expect, test } from '@playwright/test'
 import { setupMocks } from '../mocks/handlers'
 
 test.describe('Pokedex E2E Journey (Mocked)', () => {
   test('complete user journey with mocked API: list → scroll → detail → back', async ({
     page,
-  }, testInfo) => {
-    const viewport = testInfo.project.name
-
+  }) => {
     // Setup API mocks before navigation
     await setupMocks(page)
 
@@ -24,13 +21,6 @@ test.describe('Pokedex E2E Journey (Mocked)', () => {
     const initialCards = await page.locator('[data-testid="pokemon-card"]').count()
     expect(initialCards).toBeGreaterThanOrEqual(20)
 
-    // Capture screenshot: list initial state
-    const screenshotDir = path.join(process.cwd(), 'project', 'assets', 'phase-05', 'mocked')
-    await page.screenshot({
-      path: path.join(screenshotDir, `list-initial-${viewport}.png`),
-      fullPage: true,
-    })
-
     // Scroll down to trigger infinite scroll
     await page.evaluate(() => {
       window.scrollTo(0, document.body.scrollHeight)
@@ -42,12 +32,6 @@ test.describe('Pokedex E2E Journey (Mocked)', () => {
     // Verify more cards loaded
     const cardsAfterScroll = await page.locator('[data-testid="pokemon-card"]').count()
     expect(cardsAfterScroll).toBeGreaterThan(initialCards)
-
-    // Capture screenshot: list after scroll
-    await page.screenshot({
-      path: path.join(screenshotDir, `list-scrolled-${viewport}.png`),
-      fullPage: true,
-    })
 
     // Scroll back to top to click on first Pokemon
     await page.evaluate(() => {
@@ -80,12 +64,6 @@ test.describe('Pokedex E2E Journey (Mocked)', () => {
     // Back button should be visible
     const backButton = page.locator('text=/voltar para pokédex/i')
     await expect(backButton).toBeVisible()
-
-    // Capture screenshot: detail page
-    await page.screenshot({
-      path: path.join(screenshotDir, `detail-pokemon-${viewport}.png`),
-      fullPage: true,
-    })
 
     // Click back button
     await backButton.click()
