@@ -43,7 +43,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Pokemon API')
-    .setDescription('Proxy API for PokeAPI - listing and searching Pokémon')
+    .setDescription('Proxy API for PokeAPI - listing and searching Pokémon.')
     .setVersion('1.0')
     .addTag('pokemon', 'Pokémon-related endpoints')
     .build();

@@ -17,9 +17,14 @@ GRAFANA_EXPLORE_URL := $(GRAFANA_URL)/explore
 GRAFANA_DASHBOARD_URL := $(GRAFANA_URL)/d/poke-proxy-observability/poke-proxy-observability?orgId=1
 TEMPO_URL := http://localhost:$(TEMPO_PORT)
 
+# Production URLs
+PROD_SWAGGER_URL := https://preview-api-poke-proxy.onrender.com/api/docs
+PROD_FRONT_URL := https://preview-poke-proxy.onrender.com/
+GITHUB_ACTIONS_URL := https://github.com/kfurfles/poke-proxy/actions
+
 .PHONY: up
 up:
-	@cd infra && BACKEND_PORT=$(BACKEND_PORT) docker compose up -d --build
+	@cd infra && BACKEND_PORT=$(BACKEND_PORT) FRONT_PORT=$(FRONT_PORT) docker compose up -d --build
 
 .PHONY: down
 down:
@@ -41,15 +46,26 @@ open-explore:
 open-dashboard:
 	@$(OPEN) "$(GRAFANA_DASHBOARD_URL)"
 
-.PHONY: open-tempo
-open-tempo:
-	@$(OPEN) "$(TEMPO_URL)"
-
 .PHONY: open-all
-open-all: open-swagger open-front open-explore open-dashboard open-tempo
+open-all: open-swagger open-front open-explore open-dashboard
 
 .PHONY: demo
 demo: up open-all
+
+.PHONY: open-prod-swagger
+open-prod-swagger:
+	@$(OPEN) "$(PROD_SWAGGER_URL)"
+
+.PHONY: open-prod-front
+open-prod-front:
+	@$(OPEN) "$(PROD_FRONT_URL)"
+
+.PHONY: open-github-actions
+open-github-actions:
+	@$(OPEN) "$(GITHUB_ACTIONS_URL)"
+
+.PHONY: open-prod
+open-prod: open-prod-swagger open-prod-front open-github-actions
 
 
 
