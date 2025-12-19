@@ -29,6 +29,12 @@ export const envSchema = z.object({
     .string()
     .default('false')
     .transform((v) => v === 'true'),
+
+  WARMUP_COUNT_PAGES_CACHE: z
+    .string()
+    .default('0')
+    .transform(Number)
+    .pipe(z.number().min(0).max(100)),
   
   CORS_ALLOWED_ORIGINS: z
     .string()
