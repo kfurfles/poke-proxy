@@ -10,6 +10,7 @@ services:
       - OTEL_TRACES_SAMPLER=always_on
       - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://tempo:4318/v1/traces
       - WARMUP_FAMOUS_POKEMON_CACHE=true
+      - WARMUP_COUNT_PAGES_CACHE=${WARMUP_COUNT_PAGES_CACHE:-3}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
     volumes:
@@ -19,6 +20,17 @@ services:
     depends_on:
       - redis
       - tempo
+
+  frontend:
+    build:
+      context: ../front-end
+      args:
+        - VITE_API_BASE_URL=http://localhost:${BACKEND_PORT:-3001}
+        - VITE_APP_ENV=production
+    ports:
+      - "${FRONT_PORT:-5173}:80"
+    depends_on:
+      - backend
 
   redis:
     image: redis:7-alpine

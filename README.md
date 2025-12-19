@@ -29,6 +29,12 @@ From the repo root (`poke-proxy/`):
 make demo BACKEND_PORT=3002
 ```
 
+With list pages warm-up (optional):
+
+```bash
+WARMUP_COUNT_PAGES_CACHE=3 make demo BACKEND_PORT=3002
+```
+
 Backend API's:
 
 ```bash
@@ -38,6 +44,8 @@ curl -s "http://localhost:3002/pokemon/pikachu" | jq '.abilities | map(.name)'
 ```
 
 ### Structure
+
+#### Backend (`backend/`)
 
 - `src/modules/pokemon/`
   - `pokemon.controller.ts`: routes + status codes (400/404)
@@ -55,6 +63,18 @@ curl -s "http://localhost:3002/pokemon/pikachu" | jq '.abilities | map(.name)'
   - `throttler/`: rate limit via Nest Throttler
 - `src/otel.ts`: OpenTelemetry auto-instrumentation (NodeSDK + OTLP HTTP exporter)
 
+#### Frontend (`front-end/`)
+
+- `src/features/`
+  - `pokemon-list/`: list view with infinite scroll + virtualization
+  - `pokemon-detail/`: detail view with animations (Motion)
+- `src/shared/`
+  - `api/`: Orval-generated API client (type-safe)
+  - `ui/`: reusable components (ErrorBoundary, LoadingSpinner, etc.)
+- `src/app/`: TanStack Router + React Query setup
+- **Tech stack**: React 19 + Vite + TanStack Router/Query + Tailwind CSS + Motion
+- **Docker**: Multi-stage build (Node build + Nginx runtime)
+
 ### Decisions (KISS)
 
 - **Short TTL (60s)**: better latency without cache invalidation complexity.
@@ -62,6 +82,7 @@ curl -s "http://localhost:3002/pokemon/pikachu" | jq '.abilities | map(.name)'
 
 ### Components
 
+- `frontend`: React SPA (Vite + TanStack Router/Query) (UI at `http://localhost:<FRONT_PORT>`)
 - `backend`: NestJS API (Swagger at `http://localhost:<BACKEND_PORT>/api/docs`)
 - `redis`: API cache
 - `grafana`: dashboards + Explore (UI at `http://localhost:3000`)
@@ -72,6 +93,7 @@ curl -s "http://localhost:3002/pokemon/pikachu" | jq '.abilities | map(.name)'
 
 ## URL's
 
+- **Frontend**: `http://localhost:<FRONT_PORT>` (default: 5173)
 - **Swagger**: `http://localhost:<BACKEND_PORT>/api/docs`
 - **Metrics (raw)**: `http://localhost:<BACKEND_PORT>/metrics`
 - **Logs (file)**: `backend/logs/app-YYYY-MM-DD.log` (also visible in Grafana via Loki)
@@ -80,9 +102,11 @@ curl -s "http://localhost:3002/pokemon/pikachu" | jq '.abilities | map(.name)'
   - Explore: `http://localhost:3000/explore`
 - **Tempo (traces)**: `http://localhost:3200` (generate a trace by calling `/pokemon/pikachu`)
 
-## Cache Warm-up (extra / optional))
+## Cache Warm-up (extra / optional)
 
 **Goal**: warm the cache on startup for demo purposes (reduce cold-start). **Not part of the core challenge**.
+
+### Famous Pokémon Warm-up (Gemini-powered)
 
 Runs when:
 
@@ -91,6 +115,17 @@ Runs when:
 - `NODE_ENV !== test`
 
 Note: if `GEMINI_API_KEY` is missing, warm-up is **skipped** (non-fatal).
+
+### Pagination PokeApi Warm-up
+
+Automatically warms up the first N pages of the Pokémon list API:
+
+- `WARMUP_COUNT_PAGES_CACHE=N` (default: `0`, max: `100`)
+  - `0`: disabled
+  - `3`: warms up 3 pages (offsets: 0, 20, 40)
+  - `5`: warms up 5 pages (offsets: 0, 20, 40, 60, 80)
+
+Each page contains 20 Pokémon (default `limit=20`). This is useful for demo scenarios where you want instant responses for the first few pages.
 
 ## Tests (CI)
 
