@@ -16,12 +16,7 @@ export interface PokemonOutput {
   height: number;
   weight: number;
   baseExperience: number;
-  sprites: {
-    frontDefault: string | null;
-    frontShiny: string | null;
-    backDefault: string | null;
-    backShiny: string | null;
-  };
+  image: string | null;
   stats: Array<{
     name: string;
     baseStat: number;
@@ -66,7 +61,9 @@ export class GetPokemonByNameUseCase {
       const cacheKey = `pokemon:byName:${normalizedName}`;
 
       const fetchFn = async (): Promise<PokemonOutput> => {
-        const pokemon = await this.pokemonApiService.getPokemonByName(input.name);
+        const pokemon = await this.pokemonApiService.getPokemonByName(
+          input.name,
+        );
         return this.transformToOutput(pokemon);
       };
 
@@ -79,7 +76,9 @@ export class GetPokemonByNameUseCase {
         this.logger.warn('[Cache] Bypassing cache due to error', {
           cacheKey,
           errorMessage:
-            cacheError instanceof Error ? cacheError.message : String(cacheError),
+            cacheError instanceof Error
+              ? cacheError.message
+              : String(cacheError),
         });
         data = await fetchFn();
       }
@@ -156,12 +155,10 @@ export class GetPokemonByNameUseCase {
       height: pokemon.height,
       weight: pokemon.weight,
       baseExperience: pokemon.base_experience,
-      sprites: {
-        frontDefault: pokemon.sprites.front_default,
-        frontShiny: pokemon.sprites.front_shiny,
-        backDefault: pokemon.sprites.back_default,
-        backShiny: pokemon.sprites.back_shiny,
-      },
+      image:
+        pokemon.sprites.other?.['official-artwork']?.front_default ??
+        pokemon.sprites.front_default ??
+        null,
       stats: pokemon.stats.map((stat) => ({
         name: stat.stat.name,
         baseStat: stat.base_stat,

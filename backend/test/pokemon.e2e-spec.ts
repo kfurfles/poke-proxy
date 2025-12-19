@@ -3,16 +3,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
-import type { StartedRedisContainer } from '@testcontainers/redis';
-import { startRedisE2E } from './utils/redis-testcontainer';
+import { startRedisE2E, stopRedisE2E } from './utils/redis-testcontainer';
 
 describe('PokemonController (e2e)', () => {
   let app: INestApplication;
-  let redis: StartedRedisContainer;
 
   beforeAll(async () => {
     const started = await startRedisE2E();
-    redis = started.container;
     process.env.REDIS_URL = started.redisUrl;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -32,7 +29,7 @@ describe('PokemonController (e2e)', () => {
 
   afterAll(async () => {
     await app?.close();
-    await redis?.stop();
+    await stopRedisE2E();
   });
 
   describe('/pokemon (GET)', () => {
@@ -119,25 +116,13 @@ describe('PokemonController (e2e)', () => {
           expect(res.body).toHaveProperty('height');
           expect(res.body).toHaveProperty('weight');
           expect(res.body).toHaveProperty('baseExperience');
-          expect(res.body).toHaveProperty('sprites');
+          expect(res.body).toHaveProperty('image');
           expect(res.body).toHaveProperty('stats');
           expect(res.body).toHaveProperty('types');
           expect(res.body).toHaveProperty('abilities');
           expect(Array.isArray(res.body.stats)).toBe(true);
           expect(Array.isArray(res.body.types)).toBe(true);
           expect(Array.isArray(res.body.abilities)).toBe(true);
-        });
-    });
-
-    it('should return pokemon details with correct sprite URLs', () => {
-      return request(app.getHttpServer())
-        .get('/pokemon/ditto')
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.sprites).toHaveProperty('frontDefault');
-          expect(res.body.sprites).toHaveProperty('frontShiny');
-          expect(res.body.sprites).toHaveProperty('backDefault');
-          expect(res.body.sprites).toHaveProperty('backShiny');
         });
     });
 

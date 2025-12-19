@@ -4,16 +4,13 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 import { AppModule } from '@/app.module';
-import type { StartedRedisContainer } from '@testcontainers/redis';
-import { startRedisE2E } from './utils/redis-testcontainer';
+import { startRedisE2E, stopRedisE2E } from './utils/redis-testcontainer';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
-  let redis: StartedRedisContainer;
 
   beforeAll(async () => {
     const started = await startRedisE2E();
-    redis = started.container;
     process.env.REDIS_URL = started.redisUrl;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -33,7 +30,7 @@ describe('AppController (e2e)', () => {
 
   afterAll(async () => {
     await app?.close();
-    await redis?.stop();
+    await stopRedisE2E();
   });
 
   it('/ (GET) should return 404 (no root route)', () => {

@@ -4,8 +4,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { CacheService } from '@/shared/cache';
-import type { StartedRedisContainer } from '@testcontainers/redis';
-import { startRedisE2E } from './utils/redis-testcontainer';
+import { startRedisE2E, stopRedisE2E } from './utils/redis-testcontainer';
 
 @Controller('test-cache')
 class TestCacheController {
@@ -34,13 +33,11 @@ class TestAppModule {}
 
 describe('Cache (e2e)', () => {
   let app: INestApplication;
-  let redis: StartedRedisContainer;
 
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   beforeAll(async () => {
     const started = await startRedisE2E();
-    redis = started.container;
     process.env.REDIS_URL = started.redisUrl;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -60,7 +57,7 @@ describe('Cache (e2e)', () => {
 
   afterAll(async () => {
     await app?.close();
-    await redis?.stop();
+    await stopRedisE2E();
   });
 
   it('should cache responses (MISS then HIT)', async () => {

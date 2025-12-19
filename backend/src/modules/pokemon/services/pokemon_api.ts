@@ -18,6 +18,11 @@ export interface PokemonSprites {
   front_shiny: string | null;
   back_default: string | null;
   back_shiny: string | null;
+  other?: {
+    'official_artwork'?: {
+      front_default: string | null;
+    };
+  };
 }
 
 export interface PokemonStat {

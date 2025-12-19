@@ -170,12 +170,57 @@ describe('GetPokemonByNameUseCase', () => {
 
       expect(isRight(result)).toBe(true);
       if (isRight(result)) {
-        expect(result.right.sprites).toEqual({
-          frontDefault: expect.stringContaining('pokemon/25.png'),
-          frontShiny: expect.stringContaining('shiny/25.png'),
-          backDefault: expect.stringContaining('back/25.png'),
-          backShiny: expect.stringContaining('back/shiny/25.png'),
-        });
+        expect(result.right.image).toEqual(expect.stringContaining('pokemon/25.png'));
+      }
+    });
+
+    it('should prefer official artwork image when available', async () => {
+      const mockWithOfficialArtwork = {
+        ...mockPokemonDetail,
+        sprites: {
+          ...mockPokemonDetail.sprites,
+          other: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'official-artwork': {
+              front_default:
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
+            },
+          },
+        },
+      } as unknown as PokemonDetail;
+
+      pokemonApiService.getPokemonByName.mockResolvedValue(mockWithOfficialArtwork);
+
+      const result = await useCase.execute({ name: 'pikachu' });
+
+      expect(isRight(result)).toBe(true);
+      if (isRight(result)) {
+        expect(result.right.image).toEqual(
+          expect.stringContaining('other/official-artwork/25.png'),
+        );
+      }
+    });
+
+    it('should set image to null when no sprite image is available', async () => {
+      const mockNoImages: PokemonDetail = {
+        ...mockPokemonDetail,
+        sprites: {
+          ...mockPokemonDetail.sprites,
+          front_default: null,
+          // keep other sprites null too for clarity
+          front_shiny: null,
+          back_default: null,
+          back_shiny: null,
+        },
+      };
+
+      pokemonApiService.getPokemonByName.mockResolvedValue(mockNoImages);
+
+      const result = await useCase.execute({ name: 'pikachu' });
+
+      expect(isRight(result)).toBe(true);
+      if (isRight(result)) {
+        expect(result.right.image).toBeNull();
       }
     });
 

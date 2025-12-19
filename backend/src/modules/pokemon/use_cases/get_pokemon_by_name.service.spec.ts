@@ -50,12 +50,7 @@ describe('GetPokemonByNameUseCase', () => {
       height: 4,
       weight: 60,
       baseExperience: 112,
-      sprites: {
-        frontDefault: null,
-        frontShiny: null,
-        backDefault: null,
-        backShiny: null,
-      },
+      image: null,
       stats: [],
       types: ['electric'],
       abilities: [],
@@ -65,6 +60,7 @@ describe('GetPokemonByNameUseCase', () => {
     expect(isRight(result)).toBe(true);
     if (isRight(result)) {
       expect(result.right.id).toBe(25);
+      expect(result.right.image).toBeNull();
     }
 
     expect(pokemonApiService.getPokemonByName).not.toHaveBeenCalled();
@@ -95,6 +91,7 @@ describe('GetPokemonByNameUseCase', () => {
     if (isRight(result)) {
       expect(result.right.name).toBe('ditto');
       expect(result.right.types).toEqual(['normal']);
+      expect(result.right.image).toBeNull();
     }
 
     expect(pokemonApiService.getPokemonByName).toHaveBeenCalledTimes(1);
@@ -125,6 +122,7 @@ describe('GetPokemonByNameUseCase', () => {
     if (isRight(result)) {
       expect(result.right.id).toBe(1);
       expect(result.right.types).toEqual(['grass']);
+      expect(result.right.image).toBeNull();
     }
 
     expect(pokemonApiService.getPokemonByName).toHaveBeenCalledTimes(1);
