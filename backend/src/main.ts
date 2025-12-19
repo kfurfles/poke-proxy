@@ -11,10 +11,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableShutdownHooks();
   
-  // Enable CORS for frontend development (allow any localhost)
+  const allowedOrigins = ENV.CORS_ALLOWED_ORIGINS;
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);      
+      const isAllowedOrigin = allowedOrigins.includes(origin);
+
+      if (isLocalhost || isAllowedOrigin) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

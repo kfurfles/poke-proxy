@@ -29,6 +29,11 @@ export const envSchema = z.object({
     .string()
     .default('false')
     .transform((v) => v === 'true'),
+  
+  CORS_ALLOWED_ORIGINS: z
+    .string()
+    .optional()
+    .transform((v) => v?.split(',').map(url => url.trim()).filter(Boolean) ?? []),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
