@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test'
 import path from 'node:path'
+import { expect, test } from '@playwright/test'
 import { setupMocks } from '../mocks/handlers'
 
 test.describe('Pokedex E2E Journey (Mocked)', () => {
@@ -25,13 +25,7 @@ test.describe('Pokedex E2E Journey (Mocked)', () => {
     expect(initialCards).toBeGreaterThanOrEqual(20)
 
     // Capture screenshot: list initial state
-    const screenshotDir = path.join(
-      process.cwd(),
-      'project',
-      'assets',
-      'phase-05',
-      'mocked',
-    )
+    const screenshotDir = path.join(process.cwd(), 'project', 'assets', 'phase-05', 'mocked')
     await page.screenshot({
       path: path.join(screenshotDir, `list-initial-${viewport}.png`),
       fullPage: true,
@@ -107,4 +101,3 @@ test.describe('Pokedex E2E Journey (Mocked)', () => {
     expect(cardsAfterBack).toBeGreaterThanOrEqual(20)
   })
 })
-

@@ -32,8 +32,12 @@ export function TypeBackground({ type, className }: TypeBackgroundProps) {
   return (
     <div className={`pointer-events-none fixed inset-0 ${className || ''}`} aria-hidden="true">
       <div className={`absolute inset-0 bg-linear-to-br ${from} ${to}`} />
-      <div className={`absolute -left-20 -top-32 h-96 w-96 rounded-full blur-3xl ${blob} animate-pulse`} />
-      <div className={`absolute -bottom-32 -right-20 h-128 w-128 rounded-full blur-3xl ${blob} animate-pulse`} />
+      <div
+        className={`absolute -left-20 -top-32 h-96 w-96 rounded-full blur-3xl ${blob} animate-pulse`}
+      />
+      <div
+        className={`absolute -bottom-32 -right-20 h-128 w-128 rounded-full blur-3xl ${blob} animate-pulse`}
+      />
       <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px]" />
     </div>
   )

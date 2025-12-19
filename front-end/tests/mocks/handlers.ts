@@ -1,13 +1,10 @@
 import type { Page, Route } from '@playwright/test'
 import {
-  mockPokemonListPage1,
-  mockPokemonListPage2,
-} from './pokemon-list.mock'
-import {
   mockBulbasaurDetail,
   mockCharmanderDetail,
   mockSquirtleDetail,
 } from './pokemon-detail.mock'
+import { mockPokemonListPage1, mockPokemonListPage2 } from './pokemon-list.mock'
 
 /**
  * Setup API route mocking for Playwright tests
@@ -122,4 +119,3 @@ export async function setupInfiniteScrollMocks(page: Page) {
     })
   })
 }
-

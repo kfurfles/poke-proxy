@@ -2,7 +2,8 @@
 export const mockBulbasaurDetail = {
   id: 1,
   name: 'bulbasaur',
-  image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
+  image:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
   types: ['grass', 'poison'],
   height: 7, // decimeters
   weight: 69, // hectograms
@@ -48,7 +49,8 @@ export const mockBulbasaurDetail = {
 export const mockCharmanderDetail = {
   id: 4,
   name: 'charmander',
-  image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
+  image:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
   types: ['fire'],
   height: 6,
   weight: 85,
@@ -94,7 +96,8 @@ export const mockCharmanderDetail = {
 export const mockSquirtleDetail = {
   id: 7,
   name: 'squirtle',
-  image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png',
+  image:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png',
   types: ['water'],
   height: 5,
   weight: 90,
@@ -135,4 +138,3 @@ export const mockSquirtleDetail = {
     },
   ],
 }
-

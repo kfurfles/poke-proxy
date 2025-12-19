@@ -50,9 +50,7 @@ export function PokemonAbilities({ abilities }: PokemonAbilitiesProps) {
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
-                <h3 className="mb-1 capitalize text-slate-900">
-                  {ability.name.replace('-', ' ')}
-                </h3>
+                <h3 className="mb-1 capitalize text-slate-900">{ability.name.replace('-', ' ')}</h3>
                 {ability.isHidden && (
                   <motion.span
                     initial={{ scale: 0 }}

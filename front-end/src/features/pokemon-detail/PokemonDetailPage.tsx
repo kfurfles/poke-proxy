@@ -1,13 +1,13 @@
-import { useEffect } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
+import { useEffect } from 'react'
+import { motionTokens } from '../../shared/motion/tokens'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 import { TypeBackground } from '../../shared/ui/TypeBackground'
-import { usePokemonDetail } from './data/usePokemonDetail'
-import { PokemonHero } from './components/PokemonHero'
 import { PokemonAbilities } from './components/PokemonAbilities'
+import { PokemonHero } from './components/PokemonHero'
 import { PokemonStats } from './components/PokemonStats'
-import { motionTokens } from '../../shared/motion/tokens'
+import { usePokemonDetail } from './data/usePokemonDetail'
 
 export function PokemonDetailPage() {
   const { idOrName } = useParams({ strict: false }) as { idOrName?: string }
@@ -17,7 +17,7 @@ export function PokemonDetailPage() {
   // Scroll to top when page loads or Pokemon changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [idOrName])
+  }, [])
 
   const primaryType = pokemon?.types[0]
 
@@ -29,16 +29,25 @@ export function PokemonDetailPage() {
             to="/"
             className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-3 text-sm font-medium text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Voltar para Pokédex
           </Link>
           <div className="rounded-3xl bg-white/70 p-8 shadow-xl backdrop-blur-md">
             <h1 className="mb-4 text-2xl font-bold text-slate-800">Erro</h1>
-            <p className="mb-2 text-red-600">
-              Não foi possível carregar o Pokémon "{idOrName}".
-            </p>
+            <p className="mb-2 text-red-600">Não foi possível carregar o Pokémon "{idOrName}".</p>
             {error && <p className="text-sm text-slate-600">{error.message}</p>}
           </div>
         </div>
@@ -54,8 +63,19 @@ export function PokemonDetailPage() {
             to="/"
             className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-3 text-sm font-medium text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Voltar para Pokédex
           </Link>
@@ -84,8 +104,19 @@ export function PokemonDetailPage() {
           to="/"
           className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-3 text-sm font-medium text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Voltar para Pokédex
         </Link>

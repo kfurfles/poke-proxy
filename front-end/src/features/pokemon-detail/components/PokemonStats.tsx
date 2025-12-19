@@ -42,7 +42,9 @@ const typeColors: Record<string, string> = {
 
 export function PokemonStats({ stats, primaryType }: PokemonStatsProps) {
   const totalStats = stats.reduce((sum, stat) => sum + stat.baseStat, 0)
-  const typeColor = primaryType ? typeColors[primaryType.toLowerCase()] || 'bg-gray-400' : 'bg-gray-400'
+  const typeColor = primaryType
+    ? typeColors[primaryType.toLowerCase()] || 'bg-gray-400'
+    : 'bg-gray-400'
 
   return (
     <motion.div

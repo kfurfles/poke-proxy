@@ -1,10 +1,8 @@
-import { test, expect } from '@playwright/test'
 import path from 'node:path'
+import { expect, test } from '@playwright/test'
 
 test.describe('Pokedex E2E Journey', () => {
-  test('complete user journey: list → scroll → detail → back', async ({
-    page,
-  }, testInfo) => {
+  test('complete user journey: list → scroll → detail → back', async ({ page }, testInfo) => {
     const viewport = testInfo.project.name
 
     // Navigate to list page
@@ -21,12 +19,7 @@ test.describe('Pokedex E2E Journey', () => {
     expect(initialCards).toBeGreaterThanOrEqual(20)
 
     // Capture screenshot: list initial state
-    const screenshotDir = path.join(
-      process.cwd(),
-      'project',
-      'assets',
-      'phase-05',
-    )
+    const screenshotDir = path.join(process.cwd(), 'project', 'assets', 'phase-05')
     await page.screenshot({
       path: path.join(screenshotDir, `list-initial-${viewport}.png`),
       fullPage: true,
@@ -102,4 +95,3 @@ test.describe('Pokedex E2E Journey', () => {
     expect(cardsAfterBack).toBeGreaterThanOrEqual(20)
   })
 })
-

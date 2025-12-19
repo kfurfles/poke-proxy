@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
-import { getTypeBadgeClass } from '../../pokemon-list/utils/typeColors'
-import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback'
 import { HERO_FLOAT_DURATION, HERO_FLOAT_Y, motionTokens } from '../../../shared/motion/tokens'
+import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback'
+import { getTypeBadgeClass } from '../../pokemon-list/utils/typeColors'
 
 interface PokemonHeroProps {
   id: number
@@ -12,7 +12,14 @@ interface PokemonHeroProps {
   weightInKg: string
 }
 
-export function PokemonHero({ id, name, image, types, heightInMeters, weightInKg }: PokemonHeroProps) {
+export function PokemonHero({
+  id,
+  name,
+  image,
+  types,
+  heightInMeters,
+  weightInKg,
+}: PokemonHeroProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -35,11 +42,7 @@ export function PokemonHero({ id, name, image, types, heightInMeters, weightInKg
             }}
             className="relative aspect-square"
           >
-            <ImageWithFallback
-              src={image}
-              alt={name}
-              className="h-full w-full object-contain"
-            />
+            <ImageWithFallback src={image} alt={name} className="h-full w-full object-contain" />
           </motion.div>
         </div>
 
@@ -83,4 +86,3 @@ export function PokemonHero({ id, name, image, types, heightInMeters, weightInKg
     </motion.div>
   )
 }
-
