@@ -1,0 +1,107 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Backend
+        run: make backend-install
+
+      - name: Install Frontend
+        run: make frontend-install
+
+      - name: Backend Tests
+        run: make backend-test-ci
+
+      - name: Docker info
+        run: docker version && docker info
+
+      - name: Pre-pull Redis image
+        run: docker pull redis:7-alpine
+
+      - name: Backend E2E Tests
+        env:
+          JEST_JUNIT_OUTPUT_NAME: junit-e2e.xml
+        run: npm --prefix backend run test:e2e -- --reporters=default --reporters=jest-junit
+
+      - name: Frontend Build
+        run: make frontend-build
+
+  deploy-backend:
+    name: Deploy Backend
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: srv-d52birvpm1nc73ekk7d0
+        run: |
+          echo "Deploying backend service..."
+          curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{}"
+          echo ""
+          echo "✅ Backend deployed successfully!"
+
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: srv-d52bd2mmcj7s73bkff30
+        run: |
+          echo "Deploying frontend service..."
+          curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{}"
+          echo ""
+          echo "✅ Frontend deployed successfully!"
+
+  summary:
+    name: Deployment Summary
+    needs: [deploy-backend, deploy-frontend]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Display Production URLs
+        run: |
+          echo "# 🚀 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📦 Production URLs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔗 Backend API (Swagger) | [https://preview-api-poke-proxy.onrender.com/api/docs](https://preview-api-poke-proxy.onrender.com/api/docs) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌐 Frontend | [https://preview-poke-proxy.onrender.com/](https://preview-poke-proxy.onrender.com/) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📊 Redis | \`red-d52bjk7gi27c738k6mk0\` (internal) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All services deployed successfully!" >> $GITHUB_STEP_SUMMARY
+
