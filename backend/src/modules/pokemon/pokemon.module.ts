@@ -6,6 +6,8 @@ import { ListPokemonsUseCase } from './use_cases/list_pokemons.service';
 import { GeminiModule } from '@/shared/gemini';
 import { WarmupFamousPokemonsUseCase } from './use_cases/warmup_famous_pokemons.use_case';
 import { WarmupFamousPokemonsOnBootstrap } from './warmup_famous_pokemons.on_bootstrap';
+import { WarmupPokemonListPagesUseCase } from './use_cases/warmup_pokemon_list_pages.use_case';
+import { WarmupPokemonListPagesOnBootstrap } from './warmup_pokemon_list_pages.on_bootstrap';
 
 @Module({
   imports: [GeminiModule],
@@ -16,6 +18,8 @@ import { WarmupFamousPokemonsOnBootstrap } from './warmup_famous_pokemons.on_boo
     GetPokemonByNameUseCase,
     WarmupFamousPokemonsUseCase,
     WarmupFamousPokemonsOnBootstrap,
+    WarmupPokemonListPagesUseCase,
+    WarmupPokemonListPagesOnBootstrap,
   ],
   exports: [PokemonApiService, ListPokemonsUseCase, GetPokemonByNameUseCase],
 })

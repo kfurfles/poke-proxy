@@ -1,10 +1,7 @@
-import path from 'node:path'
 import { expect, test } from '@playwright/test'
 
 test.describe('Pokedex E2E Journey', () => {
-  test('complete user journey: list → scroll → detail → back', async ({ page }, testInfo) => {
-    const viewport = testInfo.project.name
-
+  test('complete user journey: list → scroll → detail → back', async ({ page }) => {
     // Navigate to list page
     await page.goto('/')
 
@@ -18,13 +15,6 @@ test.describe('Pokedex E2E Journey', () => {
     const initialCards = await page.locator('[data-testid="pokemon-card"]').count()
     expect(initialCards).toBeGreaterThanOrEqual(20)
 
-    // Capture screenshot: list initial state
-    const screenshotDir = path.join(process.cwd(), 'project', 'assets', 'phase-05')
-    await page.screenshot({
-      path: path.join(screenshotDir, `list-initial-${viewport}.png`),
-      fullPage: true,
-    })
-
     // Scroll down to trigger infinite scroll
     await page.evaluate(() => {
       window.scrollTo(0, document.body.scrollHeight)
@@ -36,12 +26,6 @@ test.describe('Pokedex E2E Journey', () => {
     // Verify more cards loaded
     const cardsAfterScroll = await page.locator('[data-testid="pokemon-card"]').count()
     expect(cardsAfterScroll).toBeGreaterThan(initialCards)
-
-    // Capture screenshot: list after scroll
-    await page.screenshot({
-      path: path.join(screenshotDir, `list-scrolled-${viewport}.png`),
-      fullPage: true,
-    })
 
     // Scroll back to top to click on Bulbasaur
     await page.evaluate(() => {
@@ -74,12 +58,6 @@ test.describe('Pokedex E2E Journey', () => {
     // Back button should be visible
     const backButton = page.locator('text=/voltar para pokédex/i')
     await expect(backButton).toBeVisible()
-
-    // Capture screenshot: detail page
-    await page.screenshot({
-      path: path.join(screenshotDir, `detail-bulbasaur-${viewport}.png`),
-      fullPage: true,
-    })
 
     // Click back button
     await backButton.click()
