@@ -26,21 +26,21 @@ Proxy built with **NestJS** for the **PokeAPI**.
 From the repo root (`poke-proxy/`):
 
 ```bash
-make demo BACKEND_PORT=3002
+make demo BACKEND_PORT=3001
 ```
 
 With list pages warm-up (optional):
 
 ```bash
-WARMUP_COUNT_PAGES_CACHE=3 make demo BACKEND_PORT=3002
+WARMUP_COUNT_PAGES_CACHE=3 make demo BACKEND_PORT=3001
 ```
 
 Backend API's:
 
 ```bash
-curl -s "http://localhost:3002/pokemon?limit=20&offset=0" | head -c 250 && echo
-curl -s "http://localhost:3002/pokemon/pikachu" | head -c 250 && echo
-curl -s "http://localhost:3002/pokemon/pikachu" | jq '.abilities | map(.name)'
+curl -s "http://localhost:3001/pokemon?limit=20&offset=0" | head -c 250 && echo
+curl -s "http://localhost:3001/pokemon/pikachu" | head -c 250 && echo
+curl -s "http://localhost:3001/pokemon/pikachu" | jq '.abilities | map(.name)'
 ```
 
 ### Structure
