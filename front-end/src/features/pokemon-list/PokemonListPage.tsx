@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { ColdStartBanner } from '../../shared/ui/ColdStartBanner'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 import { Skeleton } from '../../shared/ui/Skeleton'
 import { PokemonCard } from './components/PokemonCard'
@@ -71,12 +72,15 @@ export function PokemonListPage() {
   // Initial loading state
   if (isLoadingList) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 px-4 py-16">
-        <div className="mx-auto max-w-7xl">
-          <PokemonListHeader />
-          <PokemonListSkeleton count={12} />
+      <>
+        <ColdStartBanner isLoading={isLoadingList} />
+        <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 px-4 py-16">
+          <div className="mx-auto max-w-7xl">
+            <PokemonListHeader />
+            <PokemonListSkeleton count={12} />
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
