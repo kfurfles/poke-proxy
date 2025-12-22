@@ -2,6 +2,7 @@ import { Link, useParams } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { useEffect } from 'react'
 import { motionTokens } from '../../shared/motion/tokens'
+import { ColdStartBanner } from '../../shared/ui/ColdStartBanner'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 import { TypeBackground } from '../../shared/ui/TypeBackground'
 import { PokemonAbilities } from './components/PokemonAbilities'
@@ -57,33 +58,36 @@ export function PokemonDetailPage() {
 
   if (isLoading || !pokemon) {
     return (
-      <div className="relative min-h-screen bg-linear-to-br from-slate-200/70 to-slate-50">
-        <div className="mx-auto max-w-5xl px-4 py-8">
-          <Link
-            to="/"
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-3 text-sm font-medium text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
+      <>
+        <ColdStartBanner isLoading={isLoading} />
+        <div className="relative min-h-screen bg-linear-to-br from-slate-200/70 to-slate-50">
+          <div className="mx-auto max-w-5xl px-4 py-8">
+            <Link
+              to="/"
+              className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 px-6 py-3 text-sm font-medium text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:shadow-xl"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Voltar para Pokédex
-          </Link>
-          <div className="flex items-center justify-center py-20">
-            <LoadingSpinner />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              Voltar para Pokédex
+            </Link>
+            <div className="flex items-center justify-center py-20">
+              <LoadingSpinner />
+            </div>
           </div>
         </div>
-      </div>
+      </>
     )
   }
 
